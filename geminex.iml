@@ -41,6 +41,10 @@
       <excludeFolder url="file://$MODULE_DIR$/deps" />
       <excludeFolder url="file://$MODULE_DIR$/doc" />
       <excludeFolder url="file://$MODULE_DIR$/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/_build/dev/lib/dialyxir" />
+      <excludeFolder url="file://$MODULE_DIR$/_build/dev/lib/erlex" />
+      <excludeFolder url="file://$MODULE_DIR$/_build/test/lib/dialyxir" />
+      <excludeFolder url="file://$MODULE_DIR$/_build/test/lib/erlex" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="httpoison" level="project" />
@@ -63,5 +67,7 @@
     <orderEntry type="library" name="excoveralls" level="project" />
     <orderEntry type="library" name="http_server" level="project" />
     <orderEntry type="library" name="jsx" level="project" />
+    <orderEntry type="library" name="erlex" level="project" />
+    <orderEntry type="library" name="credo" level="project" />
   </component>
 </module>

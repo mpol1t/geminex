@@ -30,7 +30,9 @@ defmodule Geminex.API.Public do
   """
   @spec symbols(boolean) :: {:ok, list(String.t())} | {:error, any}
   def symbols(use_prod \\ true) do
-    HttpClient.use_production_url(use_prod) <> @symbols_url |> HttpClient.get_and_decode()
+    HttpClient.use_production_url(use_prod)
+    <> @symbols_url
+    |> HttpClient.get_and_decode()
   end
 
   @doc """
@@ -179,6 +181,7 @@ defmodule Geminex.API.Public do
     - symbol: The trading pair symbol (e.g., BTCUSD).
     - limit_bids: Optional. Limit the number of bid price levels returned.
     - limit_asks: Optional. Limit the number of ask price levels returned.
+    - include_breaks: Optional. Whether to display broken trades. False by default. Can be '1' or 'true' to activate
 
   ## Examples
 
@@ -192,7 +195,7 @@ defmodule Geminex.API.Public do
   @spec current_order_book(String.t(), integer, integer, boolean) :: {:ok, map} | {:error, any}
   def current_order_book(symbol, limit_bids \\ 50, limit_asks \\ 50, use_prod \\ true) do
     @current_order_book_url
-    |> HttpClient.encode_params(%{"limit_bids" => limit_bids, "limit_asks" => limit_asks})
+    |> HttpClient.encode_params([limit_bids: limit_bids, limit_asks: limit_asks])
     |> HttpClient.get_with_params(%{"symbol" => symbol}, use_prod)
   end
 
@@ -242,7 +245,9 @@ defmodule Geminex.API.Public do
   """
   @spec price_feed(boolean) :: {:ok, list(map)} | {:error, any}
   def price_feed(use_prod \\ true) do
-    HttpClient.get_and_decode(HttpClient.use_production_url(use_prod) <> @price_feed_url)
+    HttpClient.use_production_url(use_prod)
+    <> @price_feed_url
+    |> HttpClient.get_and_decode
   end
 
   @doc """
