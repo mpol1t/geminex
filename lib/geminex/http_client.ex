@@ -17,12 +17,36 @@ defmodule Geminex.HttpClient do
       {:ok, data}
     else
       {:error, reason} ->
-        Logger.error("Failed to fetch and parse data: #{reason}")
         {:error, reason}
     end
   end
 
-  defp get(url) do
+  def get_with_params(url, url_params \\ %{}, use_prod \\ true) do
+    use_production_url(use_prod)
+    <> replace_url(url, url_params)
+    |> get_and_decode
+  end
+
+  def encode_params(url, params) do
+    url <> "?" <> URI.encode_query(params |> filter_params)
+  end
+
+  def filter_params(params) do
+    params |> Enum.filter(
+                fn
+                  {k, nil}  -> false
+                  {k, v}    -> true
+                end
+              )
+  end
+
+  def replace_url(url, params) do
+    Enum.reduce(params, url, fn {key, value}, acc ->
+      String.replace(acc, ":#{key}", value)
+    end)
+  end
+
+  def get(url) do
     url |> HTTPoison.get([], timeout: @timeout) |> match_response
   end
 
