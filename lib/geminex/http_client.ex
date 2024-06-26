@@ -151,6 +151,51 @@ defmodule Geminex.HttpClient do
     http_client().get(url, [], timeout: @timeout) |> match_response()
   end
 
+  @doc """
+  Performs a POST request to the specified URL with a JSON payload.
+
+  ## Parameters
+
+    - url: The URL to perform the POST request on.
+    - payload: The payload to include in the POST request.
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.HttpClient.post_with_payload("/v1/order/status", %{"request" => "/v1/order/status", "nonce" => 12345, "order_id" => 67890}, "mykey", "mysecret")
+      {:ok, %{"order_id" => "67890", "status" => "closed", ...}}
+
+  """
+  @spec post_with_payload(String.t(), map, String.t(), String.t(), boolean) :: {:ok, any} | {:error, any}
+  def post_with_payload(url, payload, api_key, api_secret, use_prod) do
+    full_url = use_production_url(use_prod) <> url
+
+    encoded_payload = payload |> Jason.encode!() |> Base.encode64()
+    signature = :crypto.mac(:hmac, :sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
+
+    headers = [
+      {"Content-Type", "text/plain"},
+      {"Content-Length", "0"},
+      {"X-GEMINI-APIKEY", api_key},
+      {"X-GEMINI-PAYLOAD", encoded_payload},
+      {"X-GEMINI-SIGNATURE", signature},
+      {"Cache-Control", "no-cache"}
+    ]
+
+    case HTTPoison.post(full_url, "", headers, timeout: @timeout) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        Jason.decode(body)
+
+      {:ok, %HTTPoison.Response{status_code: status_code, body: body}} ->
+        {:error, %{status_code: status_code, body: body}}
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        {:error, reason}
+    end
+  end
+
   defp http_client, do: Application.get_env(:geminex, :http_client, HTTPoison)
 
   @doc false
