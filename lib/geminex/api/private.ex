@@ -46,6 +46,7 @@ defmodule Geminex.API.Private do
   @cancel_all_active_orders_url  "/v1/order/cancel/all"
   @notional_volume_url           "/v1/notionalvolume"
   @trade_volume_url              "/v1/tradevolume"
+  @fx_rate_url                  "/v2/fxrate/:symbol/:timestamp"
 
   @doc """
   Places a new order.
@@ -303,6 +304,32 @@ defmodule Geminex.API.Private do
                                                   |> Map.put_new("account", account))
 
     HttpClient.post_with_payload(@trade_volume_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @doc """
+  Retrieves the FX rate for the specified symbol at the given timestamp.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - symbol: The currency to check the USD FX rate against.
+    - timestamp: The Unix timestamp to pull the FX rate for.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.get_fx_rate("mykey", "mysecret", "gbpusd", 1719520074000)
+      {:ok, %{"fxPair" => "AUDUSD", "rate" => "0.69", ...}}
+
+  """
+  @spec get_fx_rate(String.t(), String.t(), String.t(), integer, boolean) :: {:ok, map} | {:error, any}
+  def get_fx_rate(api_key, api_secret, symbol, timestamp, use_prod \\ true) do
+    url = @fx_rate_url
+          |> String.replace(":symbol", symbol)
+          |> String.replace(":timestamp", Integer.to_string(timestamp))
+
+    HttpClient.get_with_auth(url, api_key, api_secret, use_prod)
   end
 
   defp generate_payload(request, params) do

@@ -196,6 +196,148 @@ defmodule Geminex.HttpClient do
     end
   end
 
+  @doc """
+  Performs a GET request to the specified URL with authentication headers and decodes the JSON response.
+
+  ## Parameters
+
+    - url: The URL to perform the GET request on.
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.HttpClient.get_with_auth("/v2/fxrate/gbpusd/1594651859000", "mykey", "mysecret")
+      {:ok, %{"fxPair" => "AUDUSD", "rate" => "0.69", ...}}
+
+  """
+  @spec get_with_auth(String.t(), String.t(), String.t(), boolean) :: {:ok, any} | {:error, any}
+  def get_with_auth(url, api_key, api_secret, use_prod \\ true) do
+    full_url = use_production_url(use_prod) <> url
+
+    nonce = :os.system_time(:second)
+    payload = %{"request" => url, "nonce" => nonce}
+    encoded_payload = payload |> Jason.encode!() |> Base.encode64()
+    signature = :crypto.mac(:hmac, :sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
+
+    headers = [
+      {"Content-Type", "text/plain"},
+      {"Content-Length", "0"},
+      {"X-GEMINI-APIKEY", api_key},
+      {"X-GEMINI-PAYLOAD", encoded_payload},
+      {"X-GEMINI-SIGNATURE", signature},
+      {"Cache-Control", "no-cache"}
+    ]
+
+    case HTTPoison.get(full_url, headers, timeout: @timeout) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        Jason.decode(body)
+
+      {:ok, %HTTPoison.Response{status_code: status_code, body: body}} ->
+        {:error, %{status_code: status_code, body: body}}
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        {:error, reason}
+    end
+  end
+
+  @doc """
+  Performs a POST request to the specified URL with the given query parameters and authentication headers and decodes the JSON response.
+
+  ## Parameters
+
+    - url: The URL to perform the POST request on.
+    - params: The query parameters to include in the POST request.
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.HttpClient.post_with_params("/v1/perpetuals/fundingPayment", %{since: 0, to: 1625196000}, "mykey", "mysecret")
+      {:ok, [%{"eventType" => "Hourly Funding Transfer", ...}, ...]}
+
+  """
+  @spec post_with_params(String.t(), map, String.t(), String.t(), boolean) :: {:ok, any} | {:error, any}
+  def post_with_params(url, params, api_key, api_secret, use_prod \\ true) do
+    base_url = use_production_url(use_prod)
+    full_url = base_url <> url
+
+    nonce = :os.system_time(:second)
+    payload = %{"request" => url, "nonce" => nonce} |> Map.merge(params)
+    encoded_payload = payload |> Jason.encode!() |> Base.encode64()
+    signature = :crypto.mac(:hmac, :sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
+
+    headers = [
+      {"Content-Type", "text/plain"},
+      {"Content-Length", "0"},
+      {"X-GEMINI-APIKEY", api_key},
+      {"X-GEMINI-PAYLOAD", encoded_payload},
+      {"X-GEMINI-SIGNATURE", signature},
+      {"Cache-Control", "no-cache"}
+    ]
+
+    case HTTPoison.post(full_url, "", headers, timeout: @timeout) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        Jason.decode(body)
+
+      {:ok, %HTTPoison.Response{status_code: status_code, body: body}} ->
+        {:error, %{status_code: status_code, body: body}}
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        {:error, reason}
+    end
+  end
+
+  @doc """
+  Performs a GET request to the specified URL with query parameters and authentication headers and returns the response as binary.
+
+  ## Parameters
+
+    - url: The URL to perform the GET request on.
+    - params: The query parameters to include in the GET request.
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.HttpClient.get_with_params_as_binary("/v1/perpetuals/fundingpaymentreport/records.xlsx", %{fromDate: "2024-04-10", toDate: "2024-04-25", numRows: 1000}, "mykey", "mysecret")
+      {:ok, <<1, 2, 3, ...>>}
+
+  """
+  @spec get_with_params_as_binary(String.t(), map, String.t(), String.t(), boolean) :: {:ok, binary} | {:error, any}
+  def get_with_params_as_binary(url, params, api_key, api_secret, use_prod \\ true) do
+    base_url = use_production_url(use_prod)
+    full_url = base_url <> encode_params(url, params)
+
+    nonce = :os.system_time(:second)
+    payload = %{"request" => url, "nonce" => nonce} |> Map.merge(params)
+    encoded_payload = payload |> Jason.encode!() |> Base.encode64()
+    signature = :crypto.mac(:hmac, :sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
+
+    headers = [
+      {"Content-Type", "text/plain"},
+      {"Content-Length", "0"},
+      {"X-GEMINI-APIKEY", api_key},
+      {"X-GEMINI-PAYLOAD", encoded_payload},
+      {"X-GEMINI-SIGNATURE", signature},
+      {"Cache-Control", "no-cache"}
+    ]
+
+    case HTTPoison.get(full_url, headers, timeout: @timeout) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        {:ok, body}
+
+      {:ok, %HTTPoison.Response{status_code: status_code, body: body}} ->
+        {:error, %{status_code: status_code, body: body}}
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        {:error, reason}
+    end
+  end
+
   defp http_client, do: Application.get_env(:geminex, :http_client, HTTPoison)
 
   @doc false
