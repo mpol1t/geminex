@@ -44,6 +44,8 @@ defmodule Geminex.API.Private do
   @cancel_order_url             "/v1/order/cancel"
   @cancel_all_session_orders_url "/v1/order/cancel/session"
   @cancel_all_active_orders_url  "/v1/order/cancel/all"
+  @notional_volume_url           "/v1/notionalvolume"
+  @trade_volume_url              "/v1/tradevolume"
 
   @doc """
   Places a new order.
@@ -251,6 +253,56 @@ defmodule Geminex.API.Private do
     )
 
     HttpClient.post_with_payload(@orders_history_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @doc """
+  Retrieves the notional volume for the account.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - symbol: Optional. The participating symbol for fee promotions.
+    - account: Optional. The name of the account within the subaccount group.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.get_notional_volume("mykey", "mysecret", "btcusd", "myaccount")
+      {:ok, %{"notional_30d_volume" => 150.00, "api_maker_fee_bps" => 10, ...}}
+
+  """
+  @spec get_notional_volume(String.t(), String.t(), String.t() | nil, String.t() | nil, boolean) :: {:ok, map} | {:error, any}
+  def get_notional_volume(api_key, api_secret, symbol \\ nil, account \\ nil, use_prod \\ false) do
+    payload = generate_payload(@notional_volume_url, %{}
+                                                     |> Map.put_new("symbol", symbol)
+                                                     |> Map.put_new("account", account))
+
+    HttpClient.post_with_payload(@notional_volume_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @doc """
+  Retrieves the trade volume for the account.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - account: Optional. The name of the account within the subaccount group.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.get_trade_volume("mykey", "mysecret", "myaccount")
+      {:ok, [%{"symbol" => "btcusd", "total_volume_base" => 8.06021756, ...}, ...]}
+
+  """
+  @spec get_trade_volume(String.t(), String.t(), String.t() | nil, boolean) :: {:ok, list(map)} | {:error, any}
+  def get_trade_volume(api_key, api_secret, account \\ nil, use_prod \\ false) do
+    payload = generate_payload(@trade_volume_url, %{}
+                                                  |> Map.put_new("account", account))
+
+    HttpClient.post_with_payload(@trade_volume_url, payload, api_key, api_secret, use_prod)
   end
 
   defp generate_payload(request, params) do
