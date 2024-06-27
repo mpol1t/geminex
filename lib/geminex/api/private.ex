@@ -40,6 +40,115 @@ defmodule Geminex.API.Private do
   @my_trades_url                "/v1/mytrades"
   @orders_url                   "/v1/orders"
   @order_status_url             "/v1/order/status"
+  @new_order_url                "/v1/order/new"
+  @cancel_order_url             "/v1/order/cancel"
+  @cancel_all_session_orders_url "/v1/order/cancel/session"
+  @cancel_all_active_orders_url  "/v1/order/cancel/all"
+
+  @doc """
+  Places a new order.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - symbol: The symbol for the new order.
+    - amount: Quoted decimal amount to purchase.
+    - price: Quoted decimal amount to spend per unit.
+    - side: "buy" or "sell".
+    - type: The order type. "exchange limit" or "exchange stop limit".
+    - options: Optional. An array containing at most one supported order execution option.
+    - stop_price: Optional. The price to trigger a stop-limit order (only for stop-limit orders).
+    - client_order_id: Optional. A client-specified order id.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.new_order("mykey", "mysecret", "btcusd", "5", "3633.00", "buy", "exchange limit", ["maker-or-cancel"], nil, "my-client-id")
+      {:ok, %{"order_id" => "106817811", "status" => "closed", ...}}
+
+  """
+  @spec new_order(String.t(), String.t(), String.t(), String.t(), String.t(), String.t(), String.t(), list(String.t()), String.t() | nil, String.t() | nil, boolean) :: {:ok, map} | {:error, any}
+  def new_order(api_key, api_secret, symbol, amount, price, side, type, options \\ [], stop_price \\ nil, client_order_id \\ nil, use_prod \\ false) do
+    payload = generate_payload(@new_order_url, %{
+                                                 "symbol" => symbol,
+                                                 "amount" => amount,
+                                                 "price" => price,
+                                                 "side" => side,
+                                                 "type" => type,
+                                                 "options" => options
+                                               } |> Map.put_new("stop_price", stop_price)
+                                               |> Map.put_new("client_order_id", client_order_id))
+
+    HttpClient.post_with_payload(@new_order_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @doc """
+  Cancels an order.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - order_id: The order ID to cancel.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.cancel_order("mykey", "mysecret", 106817811)
+      {:ok, %{"order_id" => "106817811", "status" => "cancelled", ...}}
+
+  """
+  @spec cancel_order(String.t(), String.t(), integer, boolean) :: {:ok, map} | {:error, any}
+  def cancel_order(api_key, api_secret, order_id, use_prod \\ false) do
+    payload = generate_payload(@cancel_order_url, %{"order_id" => order_id})
+
+    HttpClient.post_with_payload(@cancel_order_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @doc """
+  Cancels all orders for the current session.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.cancel_all_session_orders("mykey", "mysecret")
+      {:ok, %{"result" => "ok", "details" => %{"cancelledOrders" => [...], "cancelRejects" => [...]}}}
+
+  """
+  @spec cancel_all_session_orders(String.t(), String.t(), boolean) :: {:ok, map} | {:error, any}
+  def cancel_all_session_orders(api_key, api_secret, use_prod \\ false) do
+    payload = generate_payload(@cancel_all_session_orders_url, %{})
+
+    HttpClient.post_with_payload(@cancel_all_session_orders_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @doc """
+  Cancels all active orders.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.cancel_all_active_orders("mykey", "mysecret")
+      {:ok, %{"result" => "ok", "details" => %{"cancelledOrders" => [...], "cancelRejects" => [...]}}}
+
+  """
+  @spec cancel_all_active_orders(String.t(), String.t(), boolean) :: {:ok, map} | {:error, any}
+  def cancel_all_active_orders(api_key, api_secret, use_prod \\ false) do
+    payload = generate_payload(@cancel_all_active_orders_url, %{})
+
+    HttpClient.post_with_payload(@cancel_all_active_orders_url, payload, api_key, api_secret, use_prod)
+  end
 
   @doc """
   Retrieves the status of a specific order.
