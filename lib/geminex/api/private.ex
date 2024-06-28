@@ -90,6 +90,20 @@ defmodule Geminex.API.Private do
   @staking_deposit_url "/v1/staking/stake"
   @staking_withdrawal_url "/v1/staking/unstake"
 
+  # Gemini Approved Address endpoints
+  @create_address_request_url "/v1/approvedAddresses/:network/request"
+  @view_approved_addresses_url "/v1/approvedAddresses/account/:network"
+  @remove_address_url "/v1/approvedAddresses/:network/remove"
+
+  # Gemini Account Administration endpoints
+  @account_detail_url "/v1/account"
+  @create_account_url "/v1/account/create"
+  @rename_account_url "/v1/account/rename"
+  @get_accounts_in_master_group_url "/v1/account/list"
+
+  # Gemini Session Heartbeat endpoint
+  @heartbeat_url "/v1/heartbeat"
+
   @doc """
   Places a new order.
 
@@ -847,6 +861,95 @@ defmodule Geminex.API.Private do
               } |> Map.merge(params)
 
     HttpClient.post_with_payload(@staking_withdrawal_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec create_address_request(String.t(), String.t(), String.t(), String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def create_address_request(api_key, api_secret, network, address, label, account \\ nil, use_prod \\ false) do
+    payload = %{
+      "request" => String.replace(@create_address_request_url, ":network", network),
+      "nonce" => :os.system_time(:second),
+      "address" => address,
+      "label" => label,
+      "account" => account
+    }
+
+    HttpClient.post_with_payload(@create_address_request_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec view_approved_addresses(String.t(), String.t(), String.t(), boolean) :: {:ok, map} | {:error, any}
+  def view_approved_addresses(api_key, api_secret, network, account \\ nil, use_prod \\ false) do
+    payload = %{
+      "request" => String.replace(@view_approved_addresses_url, ":network", network),
+      "nonce" => :os.system_time(:second),
+      "account" => account
+    }
+
+    HttpClient.post_with_payload(@view_approved_addresses_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec remove_address(String.t(), String.t(), String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def remove_address(api_key, api_secret, network, address, account \\ nil, use_prod \\ false) do
+    payload = %{
+      "request" => String.replace(@remove_address_url, ":network", network),
+      "nonce" => :os.system_time(:second),
+      "address" => address,
+      "account" => account
+    }
+
+    HttpClient.post_with_payload(@remove_address_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec account_detail(String.t(), String.t(), String.t() | nil, boolean) :: {:ok, map} | {:error, any}
+  def account_detail(api_key, api_secret, account \\ nil, use_prod \\ false) do
+    payload = %{
+      "request" => @account_detail_url,
+      "nonce" => :os.system_time(:second),
+      "account" => account
+    }
+    HttpClient.post_with_payload(@account_detail_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec create_account(String.t(), String.t(), String.t(), String.t() | nil, boolean) :: {:ok, map} | {:error, any}
+  def create_account(api_key, api_secret, name, type \\ "exchange", use_prod \\ false) do
+    payload = %{
+      "request" => @create_account_url,
+      "nonce" => :os.system_time(:second),
+      "name" => name,
+      "type" => type
+    }
+    HttpClient.post_with_payload(@create_account_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec rename_account(String.t(), String.t(), String.t(), String.t() | nil, String.t() | nil, boolean) :: {:ok, map} | {:error, any}
+  def rename_account(api_key, api_secret, account, new_name \\ nil, new_account \\ nil, use_prod \\ false) do
+    payload = %{
+      "request" => @rename_account_url,
+      "nonce" => :os.system_time(:second),
+      "account" => account,
+      "newName" => new_name,
+      "newAccount" => new_account
+    }
+    HttpClient.post_with_payload(@rename_account_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_accounts_in_master_group(String.t(), String.t(), integer | nil, integer | nil, boolean) :: {:ok, map} | {:error, any}
+  def get_accounts_in_master_group(api_key, api_secret, limit_accounts \\ 500, timestamp \\ nil, use_prod \\ false) do
+    payload = %{
+      "request" => @get_accounts_in_master_group_url,
+      "nonce" => :os.system_time(:second),
+      "limit_accounts" => limit_accounts,
+      "timestamp" => timestamp
+    }
+    HttpClient.post_with_payload(@get_accounts_in_master_group_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec heartbeat(String.t(), String.t(), boolean) :: {:ok, map} | {:error, any}
+  def heartbeat(api_key, api_secret, use_prod \\ false) do
+    payload = %{
+      "request" => @heartbeat_url,
+      "nonce" => :os.system_time(:second)
+    }
+    HttpClient.post_with_payload(@heartbeat_url, payload, api_key, api_secret, use_prod)
   end
 
   defp generate_payload(request, params) do
