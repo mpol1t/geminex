@@ -76,6 +76,12 @@ defmodule Geminex.API.Private do
   @add_bank_cad_url "/v1/payments/addbank/cad"
   @get_payment_methods_url "/v1/payments/methods"
 
+  # Gemini Earn endpoints
+  @get_earn_balances_url "/v1/balances/earn"
+  @get_earn_rates_url "/v1/earn/rates"
+  @get_earn_interest_url "/v1/earn/interest"
+  @get_earn_history_url "/v1/earn/history"
+
   @doc """
   Places a new order.
 
@@ -741,6 +747,42 @@ defmodule Geminex.API.Private do
     }
 
     HttpClient.post_with_payload(@get_payment_methods_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_earn_balances(String.t(), String.t(), boolean) :: {:ok, map} | {:error, any}
+  def get_earn_balances(api_key, api_secret, use_prod \\ false) do
+    payload = %{
+      "request" => @get_earn_balances_url,
+      "nonce" => :os.system_time(:second)
+    }
+
+    HttpClient.post_with_payload(@get_earn_balances_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_earn_rates(boolean) :: {:ok, map} | {:error, any}
+  def get_earn_rates(use_prod \\ false) do
+    url = HttpClient.use_production_url(use_prod) <> @get_earn_rates_url
+    HttpClient.get_and_decode(url)
+  end
+
+  @spec get_earn_interest(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def get_earn_interest(api_key, api_secret, params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @get_earn_interest_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(@get_earn_interest_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_earn_history(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def get_earn_history(api_key, api_secret, params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @get_earn_history_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(@get_earn_history_url, payload, api_key, api_secret, use_prod)
   end
 
   defp generate_payload(request, params) do
