@@ -61,6 +61,21 @@ defmodule Geminex.API.Private do
   @clearing_broker_list_url     "/v1/clearing/broker/list"
   @clearing_trades_url          "/v1/clearing/trades"
 
+  # Fund Management endpoints
+  @get_balances_url "/v1/balances"
+  @get_notional_balances_url "/v1/notionalbalances/:currency"
+  @get_transfers_url "/v1/transfers"
+  @get_transactions_url "/v1/transactions"
+  @get_custody_fees_url "/v1/custodyaccountfees"
+  @get_deposit_addresses_url "/v1/addresses/:network"
+  @new_deposit_address_url "/v1/deposit/:network/newAddress"
+  @withdraw_crypto_url "/v1/withdraw/:currency"
+  @get_fee_estimate_url "/v1/withdraw/:currency/feeEstimate"
+  @internal_transfer_url "/v1/account/transfer/:currency"
+  @add_bank_url "/v1/payments/addbank"
+  @add_bank_cad_url "/v1/payments/addbank/cad"
+  @get_payment_methods_url "/v1/payments/methods"
+
   @doc """
   Places a new order.
 
@@ -592,6 +607,141 @@ defmodule Geminex.API.Private do
     HttpClient.post_with_payload(@clearing_trades_url, payload, api_key, api_secret, use_prod)
   end
 
+  @spec get_balances(String.t(), String.t(), boolean) :: {:ok, map} | {:error, any}
+  def get_balances(api_key, api_secret, use_prod \\ false) do
+    payload = %{
+      "request" => @get_balances_url,
+      "nonce" => :os.system_time(:second)
+    }
+
+    HttpClient.post_with_payload(@get_balances_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_notional_balances(String.t(), String.t(), String.t(), boolean) :: {:ok, map} | {:error, any}
+  def get_notional_balances(api_key, api_secret, currency, use_prod \\ false) do
+    url = String.replace(@get_notional_balances_url, ":currency", currency)
+    payload = %{
+      "request" => url,
+      "nonce" => :os.system_time(:second)
+    }
+
+    HttpClient.post_with_payload(url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_transfers(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def get_transfers(api_key, api_secret, params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @get_transfers_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(@get_transfers_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_transactions(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def get_transactions(api_key, api_secret, params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @get_transactions_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(@get_transactions_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_custody_fees(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def get_custody_fees(api_key, api_secret, params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @get_custody_fees_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(@get_custody_fees_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_deposit_addresses(String.t(), String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def get_deposit_addresses(api_key, api_secret, network, params \\ %{}, use_prod \\ false) do
+    url = String.replace(@get_deposit_addresses_url, ":network", network)
+    payload = %{
+                "request" => url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec new_deposit_address(String.t(), String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def new_deposit_address(api_key, api_secret, network, params \\ %{}, use_prod \\ false) do
+    url = String.replace(@new_deposit_address_url, ":network", network)
+    payload = %{
+                "request" => url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec withdraw_crypto(String.t(), String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def withdraw_crypto(api_key, api_secret, currency, params \\ %{}, use_prod \\ false) do
+    url = String.replace(@withdraw_crypto_url, ":currency", currency)
+    payload = %{
+                "request" => url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_fee_estimate(String.t(), String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def get_fee_estimate(api_key, api_secret, currency, params \\ %{}, use_prod \\ false) do
+    url = String.replace(@get_fee_estimate_url, ":currency", currency)
+    payload = %{
+                "request" => url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec internal_transfer(String.t(), String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def internal_transfer(api_key, api_secret, currency, params \\ %{}, use_prod \\ false) do
+    url = String.replace(@internal_transfer_url, ":currency", currency)
+    payload = %{
+                "request" => url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec add_bank(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def add_bank(api_key, api_secret, params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @add_bank_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(@add_bank_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec add_bank_cad(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def add_bank_cad(api_key, api_secret, params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @add_bank_cad_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(@add_bank_cad_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_payment_methods(String.t(), String.t(), boolean) :: {:ok, map} | {:error, any}
+  def get_payment_methods(api_key, api_secret, use_prod \\ false) do
+    payload = %{
+      "request" => @get_payment_methods_url,
+      "nonce" => :os.system_time(:second)
+    }
+
+    HttpClient.post_with_payload(@get_payment_methods_url, payload, api_key, api_secret, use_prod)
+  end
 
   defp generate_payload(request, params) do
     %{
