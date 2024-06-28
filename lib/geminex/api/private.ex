@@ -47,6 +47,19 @@ defmodule Geminex.API.Private do
   @notional_volume_url           "/v1/notionalvolume"
   @trade_volume_url              "/v1/tradevolume"
   @fx_rate_url                  "/v2/fxrate/:symbol/:timestamp"
+  @account_margin_url           "/v1/margin"
+  @risk_stats_url               "/v1/riskstats/:symbol"
+  @funding_payment_url          "/v1/perpetuals/fundingPayment"
+  @open_positions_url           "/v1/positions"
+  @funding_payment_report_url   "/v1/perpetuals/fundingpaymentreport/records.xlsx"
+  @new_clearing_order_url       "/v1/clearing/new"
+  @clearing_broker_order_url    "/v1/clearing/broker/new"
+  @clearing_order_status_url    "/v1/clearing/status"
+  @cancel_clearing_order_url    "/v1/clearing/cancel"
+  @confirm_clearing_order_url   "/v1/clearing/confirm"
+  @clearing_order_list_url      "/v1/clearing/list"
+  @clearing_broker_list_url     "/v1/clearing/broker/list"
+  @clearing_trades_url          "/v1/clearing/trades"
 
   @doc """
   Places a new order.
@@ -196,7 +209,7 @@ defmodule Geminex.API.Private do
 
   """
   @spec active_orders(String.t(), String.t(), boolean) :: {:ok, list(map)} | {:error, any}
-  def active_orders(api_key, api_secret, use_prod \\ true) do
+  def active_orders(api_key, api_secret, use_prod \\ false) do
     HttpClient.post_with_payload(@orders_url, generate_payload(@orders_url, %{}), api_key, api_secret, use_prod)
   end
 
@@ -331,6 +344,254 @@ defmodule Geminex.API.Private do
 
     HttpClient.get_with_auth(url, api_key, api_secret, use_prod)
   end
+
+  @doc """
+  Retrieves the open positions for the account.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - account: Optional. The name of the account within the subaccount group.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.get_open_positions("mykey", "mysecret", "myaccount")
+      {:ok, [%{"symbol" => "btcgusdperp", "quantity" => "0.2", ...}]}
+
+  """
+  @spec get_open_positions(String.t(), String.t(), String.t() | nil, boolean) :: {:ok, list(map)} | {:error, any}
+  def get_open_positions(api_key, api_secret, account \\ nil, use_prod \\ false) do
+    payload = generate_payload(@open_positions_url, %{}
+                                                    |> Map.put_new("account", account))
+
+    HttpClient.post_with_payload(@open_positions_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @doc """
+  Retrieves the account margin information.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - symbol: The trading pair symbol (e.g., BTC-GUSD-PERP).
+    - account: Optional. The name of the account within the subaccount group.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.get_account_margin("mykey", "mysecret", "BTC-GUSD-PERP", "myaccount")
+      {:ok, %{"margin_assets_value" => "9800", "initial_margin" => "6000", ...}}
+
+  """
+  @spec get_account_margin(String.t(), String.t(), String.t(), String.t() | nil, boolean) :: {:ok, map} | {:error, any}
+  def get_account_margin(api_key, api_secret, symbol, account \\ nil, use_prod \\ false) do
+    payload = generate_payload(@account_margin_url, %{
+                                                      "symbol" => symbol
+                                                    } |> Map.put_new("account", account))
+
+    HttpClient.post_with_payload(@account_margin_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @doc """
+  Retrieves the risk stats for the specified symbol.
+
+  ## Parameters
+
+    - symbol: The trading pair symbol (e.g., BTCGUSDPERP).
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.get_risk_stats("BTCGUSDPERP")
+      {:ok, %{"product_type" => "PerpetualSwapContract", "mark_price" => "30080.00", ...}}
+
+  """
+  @spec get_risk_stats(String.t(), boolean) :: {:ok, map} | {:error, any}
+  def get_risk_stats(symbol, use_prod \\ false) do
+    url = String.replace(@risk_stats_url, ":symbol", symbol)
+
+    HttpClient.get_and_decode_with_switch(url, use_prod)
+  end
+
+  @doc """
+  Retrieves the funding payments for the account.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - since: Optional. Only return funding payments after this point.
+    - to: Optional. Only return funding payments until this point.
+    - account: Optional. The name of the account within the subaccount group.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.get_funding_payments("mykey", "mysecret", 1609459200, 1612137600, "myaccount")
+      {:ok, [%{"eventType" => "Hourly Funding Transfer", "timestamp" => 1683730803940, ...}]}
+
+  """
+  @spec get_funding_payments(String.t(), String.t(), integer | nil, integer | nil, String.t() | nil, boolean) :: {:ok, list(map)} | {:error, any}
+  def get_funding_payments(api_key, api_secret, since \\ nil, to \\ nil, account \\ nil, use_prod \\ false) do
+    payload = generate_payload(@funding_payment_url, %{}
+                                                     |> Map.put_new("since", since)
+                                                     |> Map.put_new("to", to)
+                                                     |> Map.put_new("account", account))
+
+    HttpClient.post_with_payload(@funding_payment_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @doc """
+  Fetches the funding payment report file in Excel format.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - from_date: Optional. Start date for fetching records.
+    - to_date: Optional. End date for fetching records.
+    - num_rows: Optional. Maximum number of rows to fetch.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.funding_payment_report_file("mykey", "mysecret", "2024-04-10", "2024-04-25", 1000)
+      {:ok, binary_data}
+
+  """
+  @spec funding_payment_report_file(String.t(), String.t(), String.t() | nil, String.t() | nil, integer | nil, boolean) :: {:ok, binary} | {:error, any}
+  def funding_payment_report_file(api_key, api_secret, from_date \\ nil, to_date \\ nil, num_rows \\ 8760, use_prod \\ false) do
+    query_params = %{
+                     "fromDate" => from_date,
+                     "toDate" => to_date,
+                     "numRows" => num_rows
+                   }
+                   |> Enum.filter(fn {_, v} -> not is_nil(v) end)
+                   |> Enum.into(%{})
+
+    url = @funding_payment_report_url <> "?" <> URI.encode_query(query_params)
+
+    HttpClient.get_with_auth(url, api_key, api_secret, use_prod)
+  end
+
+  @doc """
+  Fetches the funding payment report in JSON format.
+
+  ## Parameters
+
+    - api_key: The API key for authentication.
+    - api_secret: The API secret for signing the request.
+    - from_date: Optional. Start date for fetching records.
+    - to_date: Optional. End date for fetching records.
+    - num_rows: Optional. Maximum number of rows to fetch.
+    - use_prod: Boolean indicating whether to use the production URL (true) or the sandbox URL (false).
+
+  ## Examples
+
+      iex> Geminex.API.Private.funding_payment_report_json("mykey", "mysecret", "2024-04-10", "2024-04-25", 1000)
+      {:ok, [%{"eventType" => "Hourly Funding Transfer", ...}]}
+
+  """
+  @spec funding_payment_report_json(String.t(), String.t(), String.t() | nil, String.t() | nil, integer | nil, boolean) :: {:ok, list(map)} | {:error, any}
+  def funding_payment_report_json(api_key, api_secret, from_date \\ nil, to_date \\ nil, num_rows \\ 8760, use_prod \\ false) do
+    query_params = %{
+                     "fromDate" => from_date,
+                     "toDate" => to_date,
+                     "numRows" => num_rows
+                   }
+                   |> Enum.filter(fn {_, v} -> not is_nil(v) end)
+                   |> Enum.into(%{})
+
+    url = @funding_payment_report_url <> "?" <> URI.encode_query(query_params)
+
+    HttpClient.get_with_auth(url, api_key, api_secret, use_prod)
+  end
+
+  @spec new_clearing_order(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def new_clearing_order(api_key, api_secret, order_params, use_prod \\ false) do
+    payload = %{
+                "request" => @new_clearing_order_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(order_params)
+
+    HttpClient.post_with_payload(@new_clearing_order_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec new_broker_order(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def new_broker_order(api_key, api_secret, order_params, use_prod \\ false) do
+    payload = %{
+                "request" => @clearing_broker_order_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(order_params)
+
+    HttpClient.post_with_payload(@clearing_broker_order_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec clearing_order_status(String.t(), String.t(), String.t(), boolean) :: {:ok, map} | {:error, any}
+  def clearing_order_status(api_key, api_secret, clearing_id, use_prod \\ false) do
+    payload = %{
+      "request" => @clearing_order_status_url,
+      "nonce" => :os.system_time(:second),
+      "clearing_id" => clearing_id
+    }
+
+    HttpClient.post_with_payload(@clearing_order_status_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec cancel_clearing_order(String.t(), String.t(), String.t(), boolean) :: {:ok, map} | {:error, any}
+  def cancel_clearing_order(api_key, api_secret, clearing_id, use_prod \\ false) do
+    payload = %{
+      "request" => @cancel_clearing_order_url,
+      "nonce" => :os.system_time(:second),
+      "clearing_id" => clearing_id
+    }
+
+    HttpClient.post_with_payload(@cancel_clearing_order_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec confirm_clearing_order(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def confirm_clearing_order(api_key, api_secret, confirm_params, use_prod \\ false) do
+    payload = %{
+                "request" => @confirm_clearing_order_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(confirm_params)
+
+    HttpClient.post_with_payload(@confirm_clearing_order_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec clearing_order_list(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def clearing_order_list(api_key, api_secret, list_params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @clearing_order_list_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(list_params)
+
+    HttpClient.post_with_payload(@clearing_order_list_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec clearing_broker_list(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def clearing_broker_list(api_key, api_secret, list_params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @clearing_broker_list_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(list_params)
+
+    HttpClient.post_with_payload(@clearing_broker_list_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec clearing_trades(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def clearing_trades(api_key, api_secret, trades_params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @clearing_trades_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(trades_params)
+
+    HttpClient.post_with_payload(@clearing_trades_url, payload, api_key, api_secret, use_prod)
+  end
+
 
   defp generate_payload(request, params) do
     %{

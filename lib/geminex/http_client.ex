@@ -3,7 +3,7 @@ defmodule Geminex.HttpClient do
   HTTP Client for Gemini API.
   """
 
-  @sandbox_url "https://api.sandbox.gemini.com"
+  @sandbox_url    "https://api.sandbox.gemini.com"
   @production_url "https://api.gemini.com"
   @timeout 5000
 
@@ -40,6 +40,17 @@ defmodule Geminex.HttpClient do
   @spec get_and_decode(String.t()) :: {:ok, any} | {:error, any}
   def get_and_decode(url) do
     with {:ok, body} <- get(url),
+         {:ok, data} <- Jason.decode(body) do
+      {:ok, data}
+    else
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  @spec get_and_decode(String.t()) :: {:ok, any} | {:error, any}
+  def get_and_decode_with_switch(url, use_prod) do
+    with {:ok, body} <- get(use_production_url(use_prod) <> url),
          {:ok, data} <- Jason.decode(body) do
       {:ok, data}
     else
