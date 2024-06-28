@@ -82,6 +82,14 @@ defmodule Geminex.API.Private do
   @get_earn_interest_url "/v1/earn/interest"
   @get_earn_history_url "/v1/earn/history"
 
+  # Gemini Staking endpoints
+  @get_staking_balances_url "/v1/balances/staking"
+  @get_staking_rates_url "/v1/staking/rates"
+  @get_staking_rewards_url "/v1/staking/rewards"
+  @get_staking_history_url "/v1/staking/history"
+  @staking_deposit_url "/v1/staking/stake"
+  @staking_withdrawal_url "/v1/staking/unstake"
+
   @doc """
   Places a new order.
 
@@ -783,6 +791,62 @@ defmodule Geminex.API.Private do
               } |> Map.merge(params)
 
     HttpClient.post_with_payload(@get_earn_history_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_staking_balances(String.t(), String.t(), boolean) :: {:ok, map} | {:error, any}
+  def get_staking_balances(api_key, api_secret, use_prod \\ false) do
+    payload = %{
+      "request" => @get_staking_balances_url,
+      "nonce" => :os.system_time(:second)
+    }
+
+    HttpClient.post_with_payload(@get_staking_balances_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_staking_rates(boolean) :: {:ok, map} | {:error, any}
+  def get_staking_rates(use_prod \\ false) do
+    url = HttpClient.use_production_url(use_prod) <> @get_staking_rates_url
+    HttpClient.get_and_decode(url)
+  end
+
+  @spec get_staking_rewards(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def get_staking_rewards(api_key, api_secret, params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @get_staking_rewards_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(@get_staking_rewards_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec get_staking_history(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def get_staking_history(api_key, api_secret, params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @get_staking_history_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(@get_staking_history_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec staking_deposit(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def staking_deposit(api_key, api_secret, params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @staking_deposit_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(@staking_deposit_url, payload, api_key, api_secret, use_prod)
+  end
+
+  @spec staking_withdrawal(String.t(), String.t(), map, boolean) :: {:ok, map} | {:error, any}
+  def staking_withdrawal(api_key, api_secret, params \\ %{}, use_prod \\ false) do
+    payload = %{
+                "request" => @staking_withdrawal_url,
+                "nonce" => :os.system_time(:second)
+              } |> Map.merge(params)
+
+    HttpClient.post_with_payload(@staking_withdrawal_url, payload, api_key, api_secret, use_prod)
   end
 
   defp generate_payload(request, params) do
