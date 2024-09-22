@@ -25,11 +25,14 @@ defmodule Geminex.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:httpoison,    "~> 1.8"},
-      {:jason,        "~> 1.2"},
-      {:mox,          "~> 1.0",   only: :test},
-      {:stream_data,  "~> 1.1.1", only: :test},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:httpoison, "~> 1.8"},
+      {:jason, "~> 1.2"},
+      {:tesla, "~> 1.12.1"},
+      {:mox, "~> 1.0", only: :test},
+      {:stream_data, "~> 1.1.1", only: :test},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:styler, "~> 1.0.0", only: [:dev, :test], runtime: false}
     ]
   end
 end
