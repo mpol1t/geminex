@@ -5,19 +5,19 @@ defmodule Geminex.API.Public do
 
   alias Geminex.HttpClient
 
-  @symbols_url                "/v1/symbols"
-  @symbol_details_url         "/v1/symbols/details/:symbol"
-  @network_url                "/v1/network/:token"
-  @ticker_url                 "/v1/pubticker/:symbol"
-  @ticker_v2_url              "/v2/ticker/:symbol"
-  @candles_url                "/v2/candles/:symbol/:time_frame"
-  @derivatives_candles_url    "/v2/derivatives/candles/:symbol/:time_frame"
-  @fee_promos_url             "/v1/feepromos"
-  @current_order_book_url     "/v1/book/:symbol"
-  @trade_history_url          "/v1/trades/:symbol"
-  @price_feed_url             "/v1/pricefeed"
-  @funding_amount_url         "/v1/fundingamount/:symbol"
-  @funding_amount_report_url  "/v1/fundingamountreport/records.xlsx"
+  @symbols_url "/v1/symbols"
+  @symbol_details_url "/v1/symbols/details/:symbol"
+  @network_url "/v1/network/:token"
+  @ticker_url "/v1/pubticker/:symbol"
+  @ticker_v2_url "/v2/ticker/:symbol"
+  @candles_url "/v2/candles/:symbol/:time_frame"
+  @derivatives_candles_url "/v2/derivatives/candles/:symbol/:time_frame"
+  @fee_promos_url "/v1/feepromos"
+  @current_order_book_url "/v1/book/:symbol"
+  @trade_history_url "/v1/trades/:symbol"
+  @price_feed_url "/v1/pricefeed"
+  @funding_amount_url "/v1/fundingamount/:symbol"
+  @funding_amount_report_url "/v1/fundingamountreport/records.xlsx"
 
   @doc """
   Retrieves all available symbols for trading.
@@ -30,9 +30,7 @@ defmodule Geminex.API.Public do
   """
   @spec symbols(boolean) :: {:ok, list(String.t())} | {:error, any}
   def symbols(use_prod \\ true) do
-    HttpClient.use_production_url(use_prod)
-    <> @symbols_url
-    |> HttpClient.get_and_decode()
+    HttpClient.get_and_decode(HttpClient.use_production_url(use_prod) <> @symbols_url)
   end
 
   @doc """
@@ -195,7 +193,7 @@ defmodule Geminex.API.Public do
   @spec current_order_book(String.t(), integer, integer, boolean) :: {:ok, map} | {:error, any}
   def current_order_book(symbol, limit_bids \\ 50, limit_asks \\ 50, use_prod \\ true) do
     @current_order_book_url
-    |> HttpClient.encode_params([limit_bids: limit_bids, limit_asks: limit_asks])
+    |> HttpClient.encode_params(limit_bids: limit_bids, limit_asks: limit_asks)
     |> HttpClient.get_with_params(%{"symbol" => symbol}, use_prod)
   end
 
@@ -245,9 +243,7 @@ defmodule Geminex.API.Public do
   """
   @spec price_feed(boolean) :: {:ok, list(map)} | {:error, any}
   def price_feed(use_prod \\ true) do
-    HttpClient.use_production_url(use_prod)
-    <> @price_feed_url
-    |> HttpClient.get_and_decode
+    HttpClient.get_and_decode(HttpClient.use_production_url(use_prod) <> @price_feed_url)
   end
 
   @doc """
@@ -290,9 +286,9 @@ defmodule Geminex.API.Public do
   """
   @spec funding_amount_report(map, boolean) :: {:ok, binary} | {:error, any}
   def funding_amount_report(opts \\ %{}, use_prod \\ true) do
-    HttpClient.use_production_url(use_prod)
-    <> @funding_amount_report_url
+    (HttpClient.use_production_url(use_prod) <>
+       @funding_amount_report_url)
     |> HttpClient.encode_params(opts)
-    |> HttpClient.get
+    |> HttpClient.get()
   end
 end

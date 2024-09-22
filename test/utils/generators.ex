@@ -9,8 +9,8 @@ defmodule Geminex.Utils.Generators do
   @min_list_length 1
   @max_list_length 100
 
-  @max_float_value  100_000.0
-  @max_timestamp    1_000_000_000_000
+  @max_float_value 100_000.0
+  @max_timestamp 1_000_000_000_000
 
   @doc """
   Generates a random ASCII string with a length between `@min_string_length` and `@max_string_length`.
@@ -25,7 +25,7 @@ defmodule Geminex.Utils.Generators do
   """
   @spec float_string_generator() :: StreamData.t()
   def float_string_generator do
-    StreamData.float(min: 0.0, max: @max_float_value) |> StreamData.map(&Float.to_string/1)
+    [min: 0.0, max: @max_float_value] |> StreamData.float() |> StreamData.map(&Float.to_string/1)
   end
 
   @doc """
@@ -58,16 +58,16 @@ defmodule Geminex.Utils.Generators do
   @spec symbol_details() :: StreamData.t()
   def symbol_details do
     StreamData.fixed_map(%{
-      "symbol"                  => string_generator(),
-      "base_currency"           => string_generator(),
-      "quote_currency"          => string_generator(),
-      "tick_size"               => StreamData.float(min: 1.0e-8, max: 1.0),
-      "quote_increment"         => StreamData.float(min: 0.01, max: 1.0),
-      "min_order_size"          => string_generator(),
-      "status"                  => string_generator(),
-      "wrap_enabled"            => StreamData.boolean(),
-      "product_type"            => string_generator(),
-      "contract_type"           => string_generator(),
+      "symbol" => string_generator(),
+      "base_currency" => string_generator(),
+      "quote_currency" => string_generator(),
+      "tick_size" => StreamData.float(min: 1.0e-8, max: 1.0),
+      "quote_increment" => StreamData.float(min: 0.01, max: 1.0),
+      "min_order_size" => string_generator(),
+      "status" => string_generator(),
+      "wrap_enabled" => StreamData.boolean(),
+      "product_type" => string_generator(),
+      "contract_type" => string_generator(),
       "contract_price_currency" => string_generator()
     })
   end
@@ -89,8 +89,8 @@ defmodule Geminex.Utils.Generators do
   @spec volume_detail() :: StreamData.t()
   def volume_detail do
     StreamData.fixed_map(%{
-      "BTC"       => string_generator(),
-      "USD"       => string_generator(),
+      "BTC" => string_generator(),
+      "USD" => string_generator(),
       "timestamp" => timestamp_generator()
     })
   end
@@ -101,10 +101,10 @@ defmodule Geminex.Utils.Generators do
   @spec ticker_detail() :: StreamData.t()
   def ticker_detail do
     StreamData.fixed_map(%{
-      "ask"     => string_generator(),
-      "bid"     => string_generator(),
-      "last"    => string_generator(),
-      "volume"  => volume_detail()
+      "ask" => string_generator(),
+      "bid" => string_generator(),
+      "last" => string_generator(),
+      "volume" => volume_detail()
     })
   end
 
@@ -114,14 +114,14 @@ defmodule Geminex.Utils.Generators do
   @spec ticker_v2_detail() :: StreamData.t()
   def ticker_v2_detail do
     StreamData.fixed_map(%{
-      "symbol"   => string_generator(),
-      "open"     => StreamData.float(min: 1.0, max: 10_000.0),
-      "high"     => StreamData.float(min: 1.0, max: 10_000.0),
-      "low"      => StreamData.float(min: 1.0, max: 10_000.0),
-      "close"    => StreamData.float(min: 1.0, max: 10_000.0),
-      "changes"  => StreamData.list_of(StreamData.float(min: 1.0, max: 10_000.0), min_length: 1, max_length: 24),
-      "bid"      => StreamData.float(min: 1.0, max: 10_000.0),
-      "ask"      => StreamData.float(min: 1.0, max: 10_000.0)
+      "symbol" => string_generator(),
+      "open" => StreamData.float(min: 1.0, max: 10_000.0),
+      "high" => StreamData.float(min: 1.0, max: 10_000.0),
+      "low" => StreamData.float(min: 1.0, max: 10_000.0),
+      "close" => StreamData.float(min: 1.0, max: 10_000.0),
+      "changes" => StreamData.list_of(StreamData.float(min: 1.0, max: 10_000.0), min_length: 1, max_length: 24),
+      "bid" => StreamData.float(min: 1.0, max: 10_000.0),
+      "ask" => StreamData.float(min: 1.0, max: 10_000.0)
     })
   end
 
@@ -160,8 +160,8 @@ defmodule Geminex.Utils.Generators do
   @spec order_book_entry() :: StreamData.t()
   def order_book_entry do
     StreamData.fixed_map(%{
-      "price"     => float_string_generator(),
-      "amount"    => float_string_generator(),
+      "price" => float_string_generator(),
+      "amount" => float_string_generator(),
       "timestamp" => StreamData.string(:ascii, length: 10)
     })
   end
@@ -184,14 +184,14 @@ defmodule Geminex.Utils.Generators do
   def trade_history_detail do
     StreamData.list_of(
       StreamData.fixed_map(%{
-        "timestamp"   => timestamp_generator(),
+        "timestamp" => timestamp_generator(),
         "timestampms" => timestamp_generator(),
-        "tid"         => StreamData.integer(),
-        "price"       => string_generator(),
-        "amount"      => string_generator(),
-        "exchange"    => StreamData.constant("gemini"),
-        "type"        => StreamData.member_of(["buy", "sell"]),
-        "broken"      => StreamData.boolean()
+        "tid" => StreamData.integer(),
+        "price" => string_generator(),
+        "amount" => string_generator(),
+        "exchange" => StreamData.constant("gemini"),
+        "type" => StreamData.member_of(["buy", "sell"]),
+        "broken" => StreamData.boolean()
       }),
       min_length: @min_list_length,
       max_length: @max_list_length
@@ -205,9 +205,9 @@ defmodule Geminex.Utils.Generators do
   def price_feed_detail do
     StreamData.list_of(
       StreamData.fixed_map(%{
-        "pair"              => string_generator(),
-        "price"             => string_generator(),
-        "percentChange24h"  => string_generator()
+        "pair" => string_generator(),
+        "price" => string_generator(),
+        "percentChange24h" => string_generator()
       }),
       min_length: @min_list_length,
       max_length: @max_list_length
@@ -220,12 +220,12 @@ defmodule Geminex.Utils.Generators do
   @spec funding_amount_detail() :: StreamData.t()
   def funding_amount_detail do
     StreamData.fixed_map(%{
-      "symbol"                    => string_generator(),
-      "fundingDateTime"           => string_generator(),
+      "symbol" => string_generator(),
+      "fundingDateTime" => string_generator(),
       "fundingTimestampMilliSecs" => timestamp_generator(),
-      "nextFundingTimestamp"      => timestamp_generator(),
-      "fundingAmount"             => StreamData.float(),
-      "estimatedFundingAmount"    => StreamData.float()
+      "nextFundingTimestamp" => timestamp_generator(),
+      "fundingAmount" => StreamData.float(),
+      "estimatedFundingAmount" => StreamData.float()
     })
   end
 end

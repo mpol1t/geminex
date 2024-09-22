@@ -1,4 +1,4 @@
-#defmodule Geminex.Config do
+# defmodule Geminex.Config do
 #  @moduledoc """
 #  Configuration for Gemini API.
 #  """
@@ -7,4 +7,4 @@
 #
 #  def api_url(:sandbox),    do: @sandbox_url
 #  def api_url(:production), do: @production_url
-#end
+# end

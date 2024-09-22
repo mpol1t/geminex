@@ -3,7 +3,7 @@ defmodule Geminex.HttpClient do
   HTTP Client for Gemini API.
   """
 
-  @sandbox_url    "https://api.sandbox.gemini.com"
+  @sandbox_url "https://api.sandbox.gemini.com"
   @production_url "https://api.gemini.com"
   @timeout 5000
 
@@ -39,23 +39,15 @@ defmodule Geminex.HttpClient do
   """
   @spec get_and_decode(String.t()) :: {:ok, any} | {:error, any}
   def get_and_decode(url) do
-    with {:ok, body} <- get(url),
-         {:ok, data} <- Jason.decode(body) do
-      {:ok, data}
-    else
-      {:error, reason} ->
-        {:error, reason}
+    with {:ok, body} <- get(url) do
+      Jason.decode(body)
     end
   end
 
   @spec get_and_decode(String.t()) :: {:ok, any} | {:error, any}
   def get_and_decode_with_switch(url, use_prod) do
-    with {:ok, body} <- get(use_production_url(use_prod) <> url),
-         {:ok, data} <- Jason.decode(body) do
-      {:ok, data}
-    else
-      {:error, reason} ->
-        {:error, reason}
+    with {:ok, body} <- get(use_production_url(use_prod) <> url) do
+      Jason.decode(body)
     end
   end
 
@@ -76,9 +68,7 @@ defmodule Geminex.HttpClient do
   """
   @spec get_with_params(String.t(), map, boolean) :: {:ok, any} | {:error, any}
   def get_with_params(url, url_params \\ %{}, use_prod \\ true) do
-    use_production_url(use_prod)
-    <> replace_url(url, url_params)
-    |> get_and_decode()
+    get_and_decode(use_production_url(use_prod) <> replace_url(url, url_params))
   end
 
   @doc """
@@ -97,7 +87,7 @@ defmodule Geminex.HttpClient do
   """
   @spec encode_params(String.t(), map) :: String.t()
   def encode_params(url, params) do
-    url <> "?" <> URI.encode_query(params |> filter_params())
+    url <> "?" <> URI.encode_query(filter_params(params))
   end
 
   @doc """
@@ -120,7 +110,7 @@ defmodule Geminex.HttpClient do
       {_, nil} -> false
       {_, _} -> true
     end)
-    |> Enum.into(%{})
+    |> Map.new()
   end
 
   @doc """
@@ -159,7 +149,7 @@ defmodule Geminex.HttpClient do
   """
   @spec get(String.t()) :: {:ok, String.t()} | {:error, any}
   def get(url) do
-    http_client().get(url, [], timeout: @timeout) |> match_response()
+    url |> http_client().get([], timeout: @timeout) |> match_response()
   end
 
   @doc """
@@ -184,7 +174,7 @@ defmodule Geminex.HttpClient do
     full_url = use_production_url(use_prod) <> url
 
     encoded_payload = payload |> Jason.encode!() |> Base.encode64()
-    signature = :crypto.mac(:hmac, :sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
+    signature = :hmac |> :crypto.mac(:sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
 
     headers = [
       {"Content-Type", "text/plain"},
@@ -230,7 +220,7 @@ defmodule Geminex.HttpClient do
     nonce = :os.system_time(:second)
     payload = %{"request" => url, "nonce" => nonce}
     encoded_payload = payload |> Jason.encode!() |> Base.encode64()
-    signature = :crypto.mac(:hmac, :sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
+    signature = :hmac |> :crypto.mac(:sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
 
     headers = [
       {"Content-Type", "text/plain"},
@@ -276,9 +266,9 @@ defmodule Geminex.HttpClient do
     full_url = base_url <> url
 
     nonce = :os.system_time(:second)
-    payload = %{"request" => url, "nonce" => nonce} |> Map.merge(params)
+    payload = Map.merge(%{"request" => url, "nonce" => nonce}, params)
     encoded_payload = payload |> Jason.encode!() |> Base.encode64()
-    signature = :crypto.mac(:hmac, :sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
+    signature = :hmac |> :crypto.mac(:sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
 
     headers = [
       {"Content-Type", "text/plain"},
@@ -324,9 +314,9 @@ defmodule Geminex.HttpClient do
     full_url = base_url <> encode_params(url, params)
 
     nonce = :os.system_time(:second)
-    payload = %{"request" => url, "nonce" => nonce} |> Map.merge(params)
+    payload = Map.merge(%{"request" => url, "nonce" => nonce}, params)
     encoded_payload = payload |> Jason.encode!() |> Base.encode64()
-    signature = :crypto.mac(:hmac, :sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
+    signature = :hmac |> :crypto.mac(:sha384, api_secret, encoded_payload) |> Base.encode16(case: :lower)
 
     headers = [
       {"Content-Type", "text/plain"},
@@ -352,7 +342,8 @@ defmodule Geminex.HttpClient do
   defp http_client, do: Application.get_env(:geminex, :http_client, HTTPoison)
 
   @doc false
-  @spec match_response({:ok, HTTPoison.Response.t()} | {:error, HTTPoison.Error.t()}) :: {:ok, String.t()} | {:error, any}
+  @spec match_response({:ok, HTTPoison.Response.t()} | {:error, HTTPoison.Error.t()}) ::
+          {:ok, String.t()} | {:error, any}
   defp match_response({:ok, %HTTPoison.Response{status_code: 200, body: body}}) do
     {:ok, body}
   end

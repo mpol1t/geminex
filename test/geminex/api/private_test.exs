@@ -1,4 +1,4 @@
-#defmodule Geminex.API.Private do
+# defmodule Geminex.API.Private do
 #  @moduledoc """
 #  Private API endpoints.
 #  """
@@ -15,4 +15,4 @@
 #  end
 #
 #  # Add more private API functions as needed
-#end
+# end

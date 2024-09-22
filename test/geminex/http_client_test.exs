@@ -1,4 +1,4 @@
-#defmodule Geminex.HttpClient do
+# defmodule Geminex.HttpClient do
 #  @moduledoc """
 #  HTTP Client for Gemini API.
 #  """
@@ -15,4 +15,4 @@
 #  defp add_auth_headers(headers, params) do
 #    # Add authentication headers as described in the Gemini API documentation
 #  end
-#end
+# end

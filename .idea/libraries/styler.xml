@@ -1,0 +1,18 @@
+<component name="libraryTable">
+  <library name="styler" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/styler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/styler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/styler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/test/lib/styler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/styler/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/test/lib/styler/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/styler/lib" />
+      <root url="file://$PROJECT_DIR$/deps/styler/lib" />
+      <root url="file://$PROJECT_DIR$/deps/styler/lib" />
+    </SOURCES>
+  </library>
+</component>
