@@ -55,6 +55,7 @@
       <excludeFolder url="file://$MODULE_DIR$/_build/test/lib/styler" />
       <excludeFolder url="file://$MODULE_DIR$/_build/dev/lib/mime" />
       <excludeFolder url="file://$MODULE_DIR$/_build/dev/lib/tesla" />
+      <excludeFolder url="file://$MODULE_DIR$/_build/test/lib/nimble_ownership" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="httpoison" level="project" />
@@ -96,5 +97,7 @@
     <orderEntry type="library" name="inch_ex" level="project" />
     <orderEntry type="library" name="cowlib" level="project" />
     <orderEntry type="library" name="ranch" level="project" />
+    <orderEntry type="library" name="styler" level="project" />
+    <orderEntry type="library" name="nimble_ownership" level="project" />
   </component>
 </module>
