@@ -109,42 +109,40 @@ defmodule Geminex.API.Private do
   @heartbeat_url "/v1/heartbeat"
 
   @doc """
-  Places a new order.
+  Places a new order with specified parameters and optional settings.
 
   ## Parameters
 
-    - **symbol**: The trading pair symbol (e.g., "btcusd").
-    - **amount**: The amount to purchase as a string.
-    - **price**: The limit price per unit as a string.
-    - **side**: Order side, either **"buy"** or **"sell"**.
-    - **type**: Order type, e.g., **"exchange limit"** or **"exchange stop limit"**.
-    - **client_order_id** (optional): A custom client ID for the order.
-    - **stop_price** (optional): The stop price for stop-limit orders.
-    - **options** (optional): List of order execution options (e.g., **["maker-or-cancel"]**).
-    - **account** (optional): Specifies the sub-account (required for master API keys).
+    - **symbol** (*String.t()*): The trading pair symbol (e.g., **"btcusd"**).
+    - **amount** (*String.t()*): The amount to purchase as a string.
+    - **price** (*String.t()*): The limit price per unit as a string.
+    - **side** (*String.t()*): Order side, either **"buy"** or **"sell"**.
+    - **type** (*String.t()*): Order type, e.g., **"exchange limit"** or **"exchange stop limit"**.
+    - **opts** (*keyword list, optional*): Optional settings for the order.
+      - **:client_order_id** (*String.t()*): A custom client ID for the order.
+      - **:stop_price** (*String.t()*): The stop price for stop-limit orders.
+      - **:options** (*list(String.t())*): List of order execution options (e.g., **["maker-or-cancel"]**).
+      - **:account** (*String.t()*): Specifies the sub-account (required for master API keys).
+
+  ## Returns
+
+    - **{:ok, map}** on success, containing order details.
+    - **{:error, any}** on failure, with an error reason.
   """
   @spec new_order(
-          symbol          :: String.t(),
-          amount          :: String.t(),
-          price           :: String.t(),
-          side            :: String.t(),
-          type            :: String.t(),
-          client_order_id :: String.t()       | nil,
-          stop_price      :: String.t()       | nil,
-          options         :: list(String.t()) | nil,
-          account         :: String.t()       | nil
+          symbol  :: String.t(),
+          amount  :: String.t(),
+          price   :: String.t(),
+          side    :: String.t(),
+          type    :: String.t(),
+          opts    :: [
+            {:client_order_id,  String.t()},
+            {:stop_price,       String.t()},
+            {:options,          list(String.t())},
+            {:account,          String.t()}
+          ]
         ) :: {:ok, map} | {:error, any}
-  def new_order(
-        symbol,
-        amount,
-        price,
-        side,
-        type,
-        client_order_id \\ nil,
-        stop_price      \\ nil,
-        options         \\ nil,
-        account         \\ nil
-      ) do
+  def new_order(symbol, amount, price, side, type, opts \\ []) do
     payload = %{
       "symbol"  => symbol,
       "amount"  => amount,
@@ -152,30 +150,40 @@ defmodule Geminex.API.Private do
       "side"    => side,
       "type"    => type
     }
-      |> Utils.maybe_put("client_order_id", client_order_id)
-      |> Utils.maybe_put("stop_price",      stop_price)
-      |> Utils.maybe_put("options",         options)
-      |> Utils.maybe_put("account",         account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@new_order_url, payload)
+    post(@new_order_url, payload, opts: [path: @new_order_url])
       |> Utils.handle_response()
   end
 
   @doc """
-  Cancels an existing order.
+  Cancels an existing order by order ID.
 
   ## Parameters
 
-    - **order_id**: The ID of the order to cancel.
-    - **account** (optional): The name of the account within the subaccount group (required for Master API keys).
+    - **order_id** (*non_neg_integer()*): The ID of the order to cancel.
+    - **opts** (*keyword list, optional*): A list of additional options.
+      - **:account** (*String.t()*): Specifies the name of the account within the subaccount group. This is required if using a Master API key.
 
-  If the order is already canceled, this request will still succeed but have no effect.
+  ## Behavior
+
+    If the order has already been canceled, this request will succeed but have no effect. The order status will remain unchanged.
+
+  ## Returns
+
+    - **{:ok, map}** on success, containing the response details of the canceled order.
+    - **{:error, any}** on failure, with an error reason.
   """
-  @spec cancel_order(order_id :: non_neg_integer(), account :: String.t() | nil) :: {:ok, map} | {:error, any}
-  def cancel_order(order_id, account \\ nil) do
-    payload = %{"order_id" => order_id} |> Utils.maybe_put("account", account)
+  @spec cancel_order(
+          order_id  :: non_neg_integer(),
+          opts      :: [
+                         {:account, String.t()}
+                       ]
+        ) :: {:ok, map} | {:error, any}
+  def cancel_order(order_id, opts \\ []) do
+    payload = %{"order_id" => order_id} |> Utils.merge_map_with_string_keys(opts)
 
-    post(@cancel_order_url, payload)
+    post(@cancel_order_url, payload, opts: [path: @cancel_order_url])
       |> Utils.handle_response()
   end
 
@@ -184,86 +192,96 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol**: The trading pair symbol for the asset to be wrapped/unwrapped (e.g., "GUSDUSD").
-    - **amount**: The amount to be wrapped/unwrapped as a string.
-    - **side**: The direction of the transaction, either **"buy"** (wrap) or **"sell"** (unwrap).
-    - **account** (optional): Specifies the sub-account (required for master API keys).
-    - **client_order_id** (optional): A custom client ID for tracking the order.
+    - **symbol** (*String.t()*): The trading pair symbol for the asset to be wrapped or unwrapped (e.g., **"GUSDUSD"**).
+    - **amount** (*String.t()*): The amount to be wrapped or unwrapped, specified as a string.
+    - **side** (*String.t()*): The direction of the transaction, either **"buy"** (to wrap) or **"sell"** (to unwrap).
+    - **opts** (*keyword list, optional*): Additional options for the transaction.
+      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
+      - **:client_order_id** (*String.t()*): A custom client ID for tracking the order.
+
+  ## Returns
+
+    - **{:ok, map}** on success, containing details of the wrap or unwrap transaction.
+    - **{:error, any}** on failure, with an error reason.
   """
   @spec wrap_order(
-          symbol          :: String.t(),
-          amount          :: String.t(),
-          side            :: String.t(),
-          account         :: String.t() | nil,
-          client_order_id :: String.t() | nil
+          symbol :: String.t(),
+          amount :: String.t(),
+          side :: String.t(),
+          opts :: [
+                    {:account, String.t()},
+                    {:client_order_id, String.t()}
+                  ]
         ) :: {:ok, map} | {:error, any}
-  def wrap_order(symbol, amount, side, account \\ nil, client_order_id \\ nil) do
+  def wrap_order(symbol, amount, side, opts \\ []) do
     payload = %{"amount" => amount, "side" => side}
-      |> Utils.maybe_put("account",         account)
-      |> Utils.maybe_put("client_order_id", client_order_id)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@wrap_order_url |> String.replace(":symbol", symbol), payload)
+    post(@wrap_order_url |> String.replace(":symbol", symbol), payload, opts: [path: @wrap_order_url])
       |> Utils.handle_response()
   end
 
   @doc """
   Cancels all orders opened by this session.
 
-  If "Require Heartbeat" is enabled for the session, this function has the same effect as a heartbeat expiration.
+  If "Require Heartbeat" is enabled for the session, this function behaves as a heartbeat expiration.
 
   ## Parameters
 
-    - **account** (optional): Specifies the sub-account (required for master API keys).
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
   """
-  @spec cancel_all_session_orders(account :: String.t() | nil) :: {:ok, map} | {:error, any}
-  def cancel_all_session_orders(account \\ nil) do
-    payload = %{} |> Utils.maybe_put("account", account)
-
-    post(@cancel_all_session_orders_url, payload)
-      |> Utils.handle_response()
-  end
-
-  @doc """
-  Cancels all outstanding orders created by any session associated with this account, including UI-placed orders.
-
-  Typically, **cancel_all_session_orders** is preferable to only cancel orders related to the current session.
-
-  ## Parameters
-
-    - **account** (optional): Specifies the sub-account (required for master API keys).
-  """
-  @spec cancel_all_active_orders(account :: String.t() | nil) :: {:ok, map} | {:error, any}
-  def cancel_all_active_orders(account \\ nil) do
-    payload = %{} |> Utils.maybe_put("account", account)
-
-    post(@cancel_all_active_orders_url, payload)
-      |> Utils.handle_response()
-  end
-
-  @doc """
-  Retrieves the status of a specific order by **order_id** or **client_order_id**.
-
-  ## Parameters
-
-    - **order_id** (optional): The order ID to retrieve status for. Cannot be used with **client_order_id**.
-    - **client_order_id** (optional): The client-specified order ID used during order placement. Cannot be used with **order_id**.
-    - **include_trades** (optional): Boolean. If true, includes trade details of all fills for the order.
-    - **account** (optional): Specifies the sub-account (required for master API keys).
-  """
-  @spec order_status(
-          order_id        :: non_neg_integer()  | nil,
-          client_order_id :: String.t()         | nil,
-          include_trades  :: boolean            | nil,
-          account         :: String.t()         | nil
-        ) :: {:ok, map} | {:error, any}
-  def order_status(order_id \\ nil, client_order_id \\ nil, include_trades \\ nil, account \\ nil) do
+  @spec cancel_all_session_orders(opts :: [account: String.t()]) :: {:ok, map} | {:error, any}
+  def cancel_all_session_orders(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("order_id",        order_id)
-      |> Utils.maybe_put("client_order_id", client_order_id)
-      |> Utils.maybe_put("include_trades",  include_trades)
-      |> Utils.maybe_put("account",         account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@order_status_url, payload)
+    post(@cancel_all_session_orders_url, payload, opts: [path: @cancel_all_session_orders_url])
+      |> Utils.handle_response()
+  end
+
+  @doc """
+  Cancels all outstanding orders created by any session associated with this account, including those placed via the UI.
+
+  Generally, it is recommended to use **cancel_all_session_orders** to only cancel orders related to the current session.
+
+  ## Parameters
+
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
+  """
+  @spec cancel_all_active_orders(opts :: [account: String.t()]) :: {:ok, map} | {:error, any}
+  def cancel_all_active_orders(opts \\ []) do
+    payload = %{}
+      |> Utils.merge_map_with_string_keys(opts)
+
+    post(@cancel_all_active_orders_url, payload, opts: [path: @cancel_all_active_orders_url])
+      |> Utils.handle_response()
+  end
+
+  @doc """
+  Retrieves the status of a specific order, identified by either **order_id** or **client_order_id**.
+
+  ## Parameters
+
+    - **opts** (*keyword list, optional*): Options for specifying order details.
+      - **:order_id** (*non_neg_integer()*): The order ID to retrieve status for. Cannot be used with **client_order_id**.
+      - **:client_order_id** (*String.t()*): The client-specified order ID used during order placement. Cannot be used with **order_id**.
+      - **:include_trades** (*boolean()*): If **true**, includes trade details for all fills associated with the order.
+      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
+  """
+  @spec order_status(opts :: [
+                               {:order_id, non_neg_integer()},
+                               {:client_order_id, String.t()},
+                               {:include_trades, boolean},
+                               {:account, String.t()}
+                             ]
+        ) :: {:ok, map} | {:error, any}
+  def order_status(opts \\ []) do
+    payload = %{}
+      |> Utils.merge_map_with_string_keys(opts)
+
+    post(@order_status_url, payload, opts: [path: @order_status_url])
       |> Utils.handle_response()
   end
 
@@ -272,14 +290,15 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **account** (optional): Specifies the sub-account (required for master API keys).
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
   """
-  @spec active_orders(account :: String.t() | nil) :: {:ok, list(map)} | {:error, any}
-  def active_orders(account \\ nil) do
+  @spec active_orders(opts :: [account: String.t()]) :: {:ok, list(map)} | {:error, any}
+  def active_orders(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@active_orders_url, payload)
+    post(@active_orders_url, payload, opts: [path: @active_orders_url])
       |> Utils.handle_response()
   end
 
@@ -288,25 +307,24 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol** (optional): The symbol to retrieve trades for (e.g., "btcusd").
-    - **limit_trades** (optional): Maximum number of trades to return (default 50, max 500).
-    - **timestamp** (optional): Only return trades on or after this timestamp.
-    - **account** (optional): Specifies the sub-account (required for master API keys).
+    - **opts** (*keyword list, optional*): Options to customize the trade retrieval.
+      - **:symbol** (*String.t()*): The symbol to retrieve trades for (e.g., "btcusd").
+      - **:limit_trades** (*non_neg_integer()*): Maximum number of trades to return (default 50, max 500).
+      - **:timestamp** (*non_neg_integer()*): Only return trades on or after this timestamp.
+      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
   """
-  @spec past_trades(
-          symbol        :: String.t()         | nil,
-          limit_trades  :: non_neg_integer()  | nil,
-          timestamp     :: non_neg_integer()  | nil,
-          account       :: String.t()         | nil
+  @spec past_trades(opts :: [
+                              {:symbol,       String.t()},
+                              {:limit_trades, non_neg_integer()},
+                              {:timestamp,    non_neg_integer()},
+                              {:account,      String.t()}
+                            ]
         ) :: {:ok, list(map)} | {:error, any}
-  def past_trades(symbol \\ nil, limit_trades \\ nil, timestamp \\ nil, account \\ nil) do
+  def past_trades(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("symbol",        symbol)
-      |> Utils.maybe_put("limit_trades",  limit_trades)
-      |> Utils.maybe_put("timestamp",     timestamp)
-      |> Utils.maybe_put("account",       account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@past_trades_url, payload)
+    post(@past_trades_url, payload, opts: [path: @past_trades_url])
       |> Utils.handle_response()
   end
 
@@ -315,25 +333,24 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol** (optional): The symbol to retrieve orders for (e.g., "btcusd").
-    - **limit_orders** (optional): Maximum number of orders to return (default 50, max 500).
-    - **timestamp** (optional): Only return orders on or after this timestamp.
-    - **account** (optional): Specifies the sub-account (required for master API keys).
+    - **opts** (*keyword list, optional*): Options to customize the order retrieval.
+      - **:symbol** (*String.t()*): The symbol to retrieve orders for (e.g., "btcusd").
+      - **:limit_orders** (*non_neg_integer()*): Maximum number of orders to return (default 50, max 500).
+      - **:timestamp** (*non_neg_integer()*): Only return orders on or after this timestamp.
+      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
   """
-  @spec orders_history(
-          symbol       :: String.t()        | nil,
-          limit_orders :: non_neg_integer() | nil,
-          timestamp    :: non_neg_integer() | nil,
-          account      :: String.t()        | nil
+  @spec orders_history(opts :: [
+                                 {:symbol,        String.t()},
+                                 {:limit_orders,  non_neg_integer()},
+                                 {:timestamp,     non_neg_integer()},
+                                 {:account,       String.t()}
+                               ]
         ) :: {:ok, list(map)} | {:error, any}
-  def orders_history(symbol \\ nil, limit_orders \\ nil, timestamp \\ nil, account \\ nil) do
+  def orders_history(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("symbol",        symbol)
-      |> Utils.maybe_put("limit_orders",  limit_orders)
-      |> Utils.maybe_put("timestamp",     timestamp)
-      |> Utils.maybe_put("account",       account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@orders_history_url, payload)
+    post(@orders_history_url, payload, opts: [path: @orders_history_url])
       |> Utils.handle_response()
   end
 
@@ -342,16 +359,20 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol** (optional): The participating symbol for fee promotions (e.g., "btcusd").
-    - **account** (optional): Specifies the sub-account (required for master API keys).
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:symbol** (*String.t()*): The participating symbol for fee promotions (e.g., "btcusd").
+      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
   """
-  @spec notional_volume(symbol :: String.t() | nil, account :: String.t() | nil) :: {:ok, map} | {:error, any}
-  def notional_volume(symbol \\ nil, account \\ nil) do
+  @spec notional_volume(opts :: [
+                                  {:symbol,   String.t()},
+                                  {:account,  String.t()}
+                                ]
+        ) :: {:ok, map} | {:error, any}
+  def notional_volume(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("symbol",  symbol)
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@notional_volume_url, payload)
+    post(@notional_volume_url, payload, opts: [path: @notional_volume_url])
       |> Utils.handle_response()
   end
 
@@ -360,14 +381,15 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **account** (optional): Specifies the sub-account (required for master API keys).
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account. This is required if using a master API key.
   """
-  @spec trade_volume(account :: String.t() | nil) :: {:ok, list(map)} | {:error, any}
-  def trade_volume(account \\ nil) do
+  @spec trade_volume(opts :: [account: String.t()]) :: {:ok, list(map)} | {:error, any}
+  def trade_volume(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@trade_volume_url, payload)
+    post(@trade_volume_url, payload, opts: [path: @trade_volume_url])
       |> Utils.handle_response()
   end
 
@@ -381,7 +403,11 @@ defmodule Geminex.API.Private do
   """
   @spec fx_rate(symbol :: String.t(), timestamp :: non_neg_integer()) :: {:ok, map} | {:error, any}
   def fx_rate(symbol, timestamp) do
-    get(@fx_rate_url |> String.replace(":symbol", symbol) |> String.replace(":timestamp", timestamp))
+    url = @fx_rate_url
+            |> String.replace(":symbol",    symbol)
+            |> String.replace(":timestamp", Integer.to_string(timestamp))
+
+    get(url, opts: [path: @fx_rate_url])
       |> Utils.handle_response()
   end
 
@@ -390,14 +416,15 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **account** (optional): Specifies the sub-account (required for master API keys).
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account. This is required if using a master API key.
   """
-  @spec open_positions(account :: String.t() | nil) :: {:ok, list(map)} | {:error, any}
-  def open_positions(account \\ nil) do
+  @spec open_positions(opts :: [account: String.t()]) :: {:ok, list(map)} | {:error, any}
+  def open_positions(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@open_positions_url, payload)
+    post(@open_positions_url, payload, opts: [path: @open_positions_url])
       |> Utils.handle_response()
   end
 
@@ -406,15 +433,16 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol**: The trading pair symbol (e.g., "BTC-GUSD-PERP").
-    - **account** (optional): Specifies the sub-account (required for master API keys).
+    - **symbol** (*String.t()*): The trading pair symbol (e.g., **"BTC-GUSD-PERP"**).
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account. This is required if using a master API key.
   """
-  @spec account_margin(symbol :: String.t(), account :: String.t() | nil) :: {:ok, map} | {:error, any}
-  def account_margin(symbol, account \\ nil) do
+  @spec account_margin(symbol :: String.t(), opts :: [account: String.t()]) :: {:ok, map} | {:error, any}
+  def account_margin(symbol, opts \\ []) do
     payload = %{"symbol" => symbol}
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@account_margin_url, payload)
+    post(@account_margin_url, payload, opts: [path: @account_margin_url])
       |> Utils.handle_response()
   end
 
@@ -423,11 +451,11 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol**: The trading pair symbol (e.g., "BTCGUSDPERP").
+    - **symbol** (*String.t()*): The trading pair symbol (e.g., **"BTCGUSDPERP"**).
   """
   @spec risk_stats(symbol :: String.t()) :: {:ok, map} | {:error, any}
   def risk_stats(symbol) do
-    get(@risk_stats_url |> String.replace(":symbol", symbol))
+    get(@risk_stats_url |> String.replace(":symbol", symbol), opts: [path: @risk_stats_url])
       |> Utils.handle_response()
   end
 
@@ -436,26 +464,25 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **since** (optional): The starting timestamp for the funding payments.
-    - **to** (optional): The ending timestamp for the funding payments.
-    - **account** (optional): Specifies the sub-account (required for master API keys).
+    - **opts** (*keyword list, optional*): Options to customize the funding payment query.
+      - **:since** (*non_neg_integer()*): The starting timestamp for the funding payments.
+      - **:to** (*non_neg_integer()*): The ending timestamp for the funding payments.
+      - **:account** (*String.t()*): Specifies the sub-account. This is required if using a master API key.
   """
-  @spec funding_payment(
-          since   :: non_neg_integer()  | nil,
-          to      :: non_neg_integer()  | nil,
-          account :: String.t()         | nil
+  @spec funding_payment(opts :: [
+                                  {:since,    non_neg_integer()},
+                                  {:to,       non_neg_integer()},
+                                  {:account,  String.t()}
+                                ]
         ) :: {:ok, list(map)} | {:error, any}
-  def funding_payment(since \\ nil, to \\ nil, account \\ nil) do
-    query_params = %{}
-      |> Utils.maybe_put("since", since)
-      |> Utils.maybe_put("to",    to)
-
-    url = "#{@funding_payment_url}?#{URI.encode_query(query_params)}"
+  def funding_payment(opts \\ []) do
+    query = opts
+       |> Enum.filter(fn {key, _} -> key in [:since, :to] end)
 
     payload = %{}
-      |> Utils.maybe_put("account", account)
+      |> Utils.maybe_put("account", Keyword.get(opts, :account))
 
-    post(url, payload)
+    post(@funding_payment_url, payload, query: query, opts: [path: @funding_payment_url])
       |> Utils.handle_response()
   end
 
@@ -464,24 +491,20 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **from_date** (optional): Start date for the records in YYYY-MM-DD format.
-    - **to_date** (optional): End date for the records in YYYY-MM-DD format.
-    - **num_rows** (optional): Maximum number of rows to retrieve (default 8760).
+    - **opts** (*keyword list, optional*): Options to customize the data retrieval.
+      - **:from_date** (*String.t()*): Start date for the records in **YYYY-MM-DD** format.
+      - **:to_date** (*String.t()*): End date for the records in **YYYY-MM-DD** format.
+      - **:num_rows** (*non_neg_integer()*): Maximum number of rows to retrieve (default 8760).
   """
   @spec funding_payment_report_file(
-          from_date :: String.t()         | nil,
-          to_date   :: String.t()         | nil,
-          num_rows  :: non_neg_integer()  | nil
+          opts :: [
+                    {:from_date,  String.t()},
+                    {:to_date,    String.t()},
+                    {:num_rows,   non_neg_integer()}
+                  ]
         ) :: {:ok, binary} | {:error, any}
-  def funding_payment_report_file(from_date \\ nil, to_date \\ nil, num_rows \\ 8760) do
-    query_params = %{}
-      |> Utils.maybe_put("fromDate",  from_date)
-      |> Utils.maybe_put("toDate",    to_date)
-      |> Utils.maybe_put("numRows",   num_rows)
-
-    url = "#{@funding_payment_report_file_url}?#{URI.encode_query(query_params)}"
-
-    get(url)
+  def funding_payment_report_file(opts \\ []) do
+    get(@funding_payment_report_file_url, query: opts, opts: [path: @funding_payment_report_file_url])
       |> Utils.handle_response()
   end
 
@@ -490,24 +513,20 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **from_date** (optional): Start date for the records in YYYY-MM-DD format.
-    - **to_date** (optional): End date for the records in YYYY-MM-DD format.
-    - **num_rows** (optional): Maximum number of rows to retrieve (default 8760).
+    - **opts** (*keyword list, optional*): Options to customize the data retrieval.
+      - **:from_date** (*String.t()*): Start date for the records in **YYYY-MM-DD** format.
+      - **:to_date** (*String.t()*): End date for the records in **YYYY-MM-DD** format.
+      - **:num_rows** (*non_neg_integer()*): Maximum number of rows to retrieve (default 8760).
   """
   @spec funding_payment_report_json(
-          from_date :: String.t()         | nil,
-          to_date   :: String.t()         | nil,
-          num_rows  :: non_neg_integer()  | nil
+          opts :: [
+                    {:from_date,  String.t()},
+                    {:to_date,    String.t()},
+                    {:num_rows,   non_neg_integer()}
+                  ]
         ) :: {:ok, list(map)} | {:error, any}
-  def funding_payment_report_json(from_date \\ nil, to_date \\ nil, num_rows \\ 8760) do
-    query_params = %{}
-      |> Utils.maybe_put("fromDate",  from_date)
-      |> Utils.maybe_put("toDate",    to_date)
-      |> Utils.maybe_put("numRows",   num_rows)
-
-    url = "#{@funding_payment_report_json_url}?#{URI.encode_query(query_params)}"
-
-    get(url)
+  def funding_payment_report_json(opts \\ []) do
+    get(@funding_payment_report_json_url, query: opts, opts: [path: @funding_payment_report_json_url])
       |> Utils.handle_response()
   end
 
@@ -516,35 +535,36 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol**: The trading pair symbol for the order (e.g., "btcusd").
-    - **amount**: The amount to purchase as a string.
-    - **price**: The price per unit as a string.
-    - **side**: "buy" or "sell".
-    - **counterparty_id** (optional): ID of the counterparty for this trade.
-    - **expires_in_hrs** (optional): Number of hours before the trade expires.
-    - **account** (optional): Specifies the sub-account.
+    - **symbol** (*String.t()*): The trading pair symbol for the order (e.g., **"btcusd"**).
+    - **amount** (*String.t()*): The amount to purchase as a string.
+    - **price** (*String.t()*): The price per unit as a string.
+    - **side** (*String.t()*): **"buy"** or **"sell"**.
+    - **opts** (*keyword list, optional*): Additional options for the clearing order.
+      - **:counterparty_id** (*String.t()*): ID of the counterparty for this trade.
+      - **:expires_in_hrs** (*non_neg_integer()*): Number of hours before the trade expires.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec new_clearing_order(
-          symbol          :: String.t(),
-          amount          :: String.t(),
-          price           :: String.t(),
-          side            :: String.t(),
-          counterparty_id :: String.t()         | nil,
-          expires_in_hrs  :: non_neg_integer()  | nil,
-          account         :: String.t()         | nil
+          symbol  :: String.t(),
+          amount  :: String.t(),
+          price   :: String.t(),
+          side    :: String.t(),
+          opts    :: [
+                      {:counterparty_id,  String.t()},
+                      {:expires_in_hrs,   non_neg_integer()},
+                      {:account,          String.t()}
+                    ]
         ) :: {:ok, map} | {:error, any}
-  def new_clearing_order(symbol, amount, price, side, counterparty_id \\ nil, expires_in_hrs \\ nil, account \\ nil) do
+  def new_clearing_order(symbol, amount, price, side, opts \\ []) do
     payload = %{
-      "symbol"  => symbol,
-      "amount"  => amount,
-      "price"   => price,
-      "side"    => side
+      "symbol" => symbol,
+      "amount" => amount,
+      "price"  => price,
+      "side"   => side
     }
-      |> Utils.maybe_put("counterparty_id", counterparty_id)
-      |> Utils.maybe_put("expires_in_hrs",  expires_in_hrs)
-      |> Utils.maybe_put("account",         account)
+    |> Utils.merge_map_with_string_keys(opts)
 
-    post(@new_clearing_order_url, payload)
+    post(@new_clearing_order_url, payload, opts: [path: @new_clearing_order_url])
       |> Utils.handle_response()
   end
 
@@ -553,14 +573,15 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol**: The trading pair symbol.
-    - **amount**: The amount to purchase as a string.
-    - **price**: The price per unit as a string.
-    - **side**: "buy" or "sell".
-    - **source_counterparty_id**: The counterparty initiating the trade.
-    - **target_counterparty_id**: The target counterparty.
-    - **expires_in_hrs** (optional): Number of hours before the trade expires.
-    - **account** (optional): Specifies the broker sub-account.
+    - **symbol** (*String.t()*): The trading pair symbol.
+    - **amount** (*String.t()*): The amount to purchase as a string.
+    - **price** (*String.t()*): The price per unit as a string.
+    - **side** (*String.t()*): **"buy"** or **"sell"**.
+    - **source_counterparty_id** (*String.t()*): The counterparty initiating the trade.
+    - **target_counterparty_id** (*String.t()*): The target counterparty.
+    - **opts** (*keyword list, optional*): Additional options for the broker order.
+      - **:expires_in_hrs** (*non_neg_integer()*): Number of hours before the trade expires.
+      - **:account** (*String.t()*): Specifies the broker sub-account.
   """
   @spec new_broker_order(
           symbol                  :: String.t(),
@@ -569,41 +590,41 @@ defmodule Geminex.API.Private do
           side                    :: String.t(),
           source_counterparty_id  :: String.t(),
           target_counterparty_id  :: String.t(),
-          expires_in_hrs          :: non_neg_integer()  | nil,
-          account                 :: String.t()         | nil
+          opts :: [
+                    {:expires_in_hrs, non_neg_integer()},
+                    {:account,        String.t()}
+                  ]
         ) :: {:ok, map} | {:error, any}
-  def new_broker_order(symbol, amount, price, side, source_counterparty_id, target_counterparty_id, expires_in_hrs \\ nil, account \\ nil) do
+  def new_broker_order(symbol, amount, price, side, source_counterparty_id, target_counterparty_id, opts \\ []) do
     payload = %{
-      "symbol"                  => symbol,
-      "amount"                  => amount,
-      "price"                   => price,
-      "side"                    => side,
-      "source_counterparty_id"  => source_counterparty_id,
-      "target_counterparty_id"  => target_counterparty_id
+      "symbol"                 => symbol,
+      "amount"                 => amount,
+      "price"                  => price,
+      "side"                   => side,
+      "source_counterparty_id" => source_counterparty_id,
+      "target_counterparty_id" => target_counterparty_id
     }
-      |> Utils.maybe_put("expires_in_hrs",  expires_in_hrs)
-      |> Utils.maybe_put("account",         account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@new_broker_order_url, payload)
+    post(@new_broker_order_url, payload, opts: [path: @new_broker_order_url])
       |> Utils.handle_response()
   end
-
   @doc """
   Fetches the status of a clearing order by its unique clearing ID.
 
   ## Parameters
     - **clearing_id**: A unique identifier for the clearing order.
-    - **account** (optional): Specifies the sub-account.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
-  @spec clearing_order_status(clearing_id :: String.t(), opts :: keyword()) :: {:ok, map} | {:error, any}
-  def clearing_order_status(clearing_id, account \\ nil) do
+  @spec clearing_order_status(clearing_id :: String.t(), opts :: [account: String.t()]) :: {:ok, map} | {:error, any}
+  def clearing_order_status(clearing_id, opts \\ []) do
     payload = %{"clearing_id" => clearing_id}
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@clearing_order_status_url, payload)
+    post(@clearing_order_status_url, payload, opts: [path: @clearing_order_status_url])
       |> Utils.handle_response()
   end
-
 
   @doc """
   Cancels a specific clearing order.
@@ -611,12 +632,13 @@ defmodule Geminex.API.Private do
   ## Parameters
 
     - **clearing_id**: The unique identifier of the clearing order.
-    - **account** (optional): Specifies the sub-account.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
-  @spec cancel_clearing_order(clearing_id :: String.t(), account :: String.t() | nil) :: {:ok, map} | {:error, any}
-  def cancel_clearing_order(clearing_id, account \\ nil) do
+  @spec cancel_clearing_order(clearing_id :: String.t(), opts :: [account: String.t()]) :: {:ok, map} | {:error, any}
+  def cancel_clearing_order(clearing_id, opts \\ []) do
     payload = %{"clearing_id" => clearing_id}
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
     post(@cancel_clearing_order_url, payload)
       |> Utils.handle_response()
@@ -632,7 +654,8 @@ defmodule Geminex.API.Private do
     - **amount**: The amount to purchase as a string.
     - **price**: The price per unit as a string.
     - **side**: "buy" or "sell".
-    - **account** (optional): Specifies the sub-account.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec confirm_clearing_order(
           clearing_id :: String.t(),
@@ -640,9 +663,9 @@ defmodule Geminex.API.Private do
           amount      :: String.t(),
           price       :: String.t(),
           side        :: String.t(),
-          account     :: String.t() | nil
+          opts        :: [account: String.t()]
         ) :: {:ok, map} | {:error, any}
-  def confirm_clearing_order(clearing_id, symbol, amount, price, side, account \\ nil) do
+  def confirm_clearing_order(clearing_id, symbol, amount, price, side, opts \\ []) do
     payload = %{
       "clearing_id" => clearing_id,
       "symbol"      => symbol,
@@ -650,9 +673,9 @@ defmodule Geminex.API.Private do
       "price"       => price,
       "side"        => side
     }
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@confirm_clearing_order_url, payload)
+    post(@confirm_clearing_order_url, payload, opts: [path: @confirm_clearing_order_url])
       |> Utils.handle_response()
   end
 
@@ -661,49 +684,35 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol** (optional): Trading pair symbol.
-    - **counterparty** (optional): Counterparty ID or alias.
-    - **side**: "buy" or "sell" (required).
-    - **expiration_start** (optional): Start timestamp for expiration filter.
-    - **expiration_end** (optional): End timestamp for expiration filter.
-    - **submission_start** (optional): Start timestamp for submission filter.
-    - **submission_end** (optional): End timestamp for submission filter.
-    - **funded** (optional): Whether the order is funded.
-    - **account** (optional): Specifies the sub-account.
+    - **side** (*String.t()*): "buy" or "sell" (required).
+    - **opts** (*keyword list, optional*): Filter options for the clearing orders.
+      - **:symbol** (*String.t()*): Trading pair symbol.
+      - **:counterparty** (*String.t()*): Counterparty ID or alias.
+      - **:expiration_start** (*non_neg_integer()*): Start timestamp for expiration filter.
+      - **:expiration_end** (*non_neg_integer()*): End timestamp for expiration filter.
+      - **:submission_start** (*non_neg_integer()*): Start timestamp for submission filter.
+      - **:submission_end** (*non_neg_integer()*): End timestamp for submission filter.
+      - **:funded** (*boolean()*): Whether the order is funded.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec clearing_order_list(
-          side              :: String.t(),
-          symbol            :: String.t()         | nil,
-          counterparty      :: String.t()         | nil,
-          expiration_start  :: non_neg_integer()  | nil,
-          expiration_end    :: non_neg_integer()  | nil,
-          submission_start  :: non_neg_integer()  | nil,
-          submission_end    :: non_neg_integer()  | nil,
-          funded            :: boolean            | nil,
-          account           :: String.t()         | nil
+          side    :: String.t(),
+          opts    :: [
+             {:symbol,            String.t()},
+             {:counterparty,      String.t()},
+             {:expiration_start,  non_neg_integer()},
+             {:expiration_end,    non_neg_integer()},
+             {:submission_start,  non_neg_integer()},
+             {:submission_end,    non_neg_integer()},
+             {:funded,            boolean()},
+             {:account,           String.t()}
+         ]
         ) :: {:ok, map} | {:error, any}
-  def clearing_order_list(
-        side,
-        symbol            \\ nil,
-        counterparty      \\ nil,
-        expiration_start  \\ nil,
-        expiration_end    \\ nil,
-        submission_start  \\ nil,
-        submission_end    \\ nil,
-        funded            \\ nil,
-        account           \\ nil
-      ) do
+  def clearing_order_list(side, opts \\ []) do
     payload = %{"side" => side}
-      |> Utils.maybe_put("symbol",            symbol)
-      |> Utils.maybe_put("counterparty",      counterparty)
-      |> Utils.maybe_put("expiration_start",  expiration_start)
-      |> Utils.maybe_put("expiration_end",    expiration_end)
-      |> Utils.maybe_put("submission_start",  submission_start)
-      |> Utils.maybe_put("submission_end",    submission_end)
-      |> Utils.maybe_put("funded",            funded)
-      |> Utils.maybe_put("account",           account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@clearing_order_list_url, payload)
+    post(@clearing_order_list_url, payload, opts: [path: @clearing_order_list_url])
       |> Utils.handle_response()
   end
 
@@ -712,42 +721,31 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol** (optional): Trading pair symbol.
-    - **expiration_start** (optional): Start timestamp for expiration filter.
-    - **expiration_end** (optional): End timestamp for expiration filter.
-    - **submission_start** (optional): Start timestamp for submission filter.
-    - **submission_end** (optional): End timestamp for submission filter.
-    - **funded** (optional): Whether the order is funded.
-    - **account** (optional): Specifies the sub-account.
+    - **opts** (*keyword list, optional*): Filter options for broker clearing orders.
+      - **:symbol** (*String.t()*): Trading pair symbol.
+      - **:expiration_start** (*non_neg_integer()*): Start timestamp for expiration filter.
+      - **:expiration_end** (*non_neg_integer()*): End timestamp for expiration filter.
+      - **:submission_start** (*non_neg_integer()*): Start timestamp for submission filter.
+      - **:submission_end** (*non_neg_integer()*): End timestamp for submission filter.
+      - **:funded** (*boolean()*): Whether the order is funded.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec clearing_broker_list(
-          symbol            :: String.t()         | nil,
-          expiration_start  :: non_neg_integer()  | nil,
-          expiration_end    :: non_neg_integer()  | nil,
-          submission_start  :: non_neg_integer()  | nil,
-          submission_end    :: non_neg_integer()  | nil,
-          funded            :: boolean            | nil,
-          account           :: String.t()         | nil
+          opts :: [
+            {:symbol,           String.t()},
+            {:expiration_start, non_neg_integer()},
+            {:expiration_end,   non_neg_integer()},
+            {:submission_start, non_neg_integer()},
+            {:submission_end,   non_neg_integer()},
+            {:funded,           boolean()},
+            {:account,          String.t()}
+          ]
         ) :: {:ok, map} | {:error, any}
-  def clearing_broker_list(
-        symbol            \\ nil,
-        expiration_start  \\ nil,
-        expiration_end    \\ nil,
-        submission_start  \\ nil,
-        submission_end    \\ nil,
-        funded            \\ nil,
-        account           \\ nil
-      ) do
+  def clearing_broker_list(opts \\ []) do
     payload = %{}
-              |> Utils.maybe_put("symbol",            symbol)
-              |> Utils.maybe_put("expiration_start",  expiration_start)
-              |> Utils.maybe_put("expiration_end",    expiration_end)
-              |> Utils.maybe_put("submission_start",  submission_start)
-              |> Utils.maybe_put("submission_end",    submission_end)
-              |> Utils.maybe_put("funded",            funded)
-              |> Utils.maybe_put("account",           account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@clearing_broker_list_url, payload)
+    post(@clearing_broker_list_url, payload, opts: [path: @clearing_broker_list_url])
       |> Utils.handle_response()
   end
 
@@ -756,42 +754,39 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **timestamp_nanos** (optional): Only return trades on or after this timestamp in nanos.
-    - **limit** (optional): The maximum number of trades to return.
-    - **account** (optional): Specifies the sub-account.
+    - **opts** (*keyword list, optional*): Filter options for clearing trades.
+      - **:timestamp_nanos** (*non_neg_integer()*): Only return trades on or after this timestamp in nanoseconds.
+      - **:limit** (*non_neg_integer()*): The maximum number of trades to return.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec clearing_trades(
-          timestamp_nanos :: non_neg_integer()  | nil,
-          limit           :: non_neg_integer()  | nil,
-          account         :: String.t()         | nil
+          opts :: [
+            {:timestamp_nanos,  non_neg_integer()},
+            {:limit,            non_neg_integer()},
+            {:account,          String.t()}
+          ]
         ) :: {:ok, map} | {:error, any}
-  def clearing_trades(
-        timestamp_nanos \\ nil,
-        limit           \\ nil,
-        account         \\ nil
-      ) do
+  def clearing_trades(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("timestamp_nanos", timestamp_nanos)
-      |> Utils.maybe_put("limit",           limit)
-      |> Utils.maybe_put("account",         account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@clearing_trades_url, payload)
+    post(@clearing_trades_url, payload, opts: [path: @clearing_trades_url])
       |> Utils.handle_response()
   end
-
   @doc """
   Fetches available balances in supported currencies.
 
   ## Parameters
 
-    - **account** (optional): Specifies the sub-account.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
-  @spec available_balances(account :: String.t() | nil) :: {:ok, list(map)} | {:error, any}
-  def available_balances(account \\ nil) do
+  @spec available_balances(opts :: [account: String.t()]) :: {:ok, list(map)} | {:error, any}
+  def available_balances(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@available_balances_url, payload)
+    post(@available_balances_url, payload, opts: [path: @available_balances_url])
       |> Utils.handle_response()
   end
 
@@ -800,15 +795,16 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **currency**: Three-letter fiat currency code for notional values (e.g., "usd").
-    - **account** (optional): Specifies the sub-account.
+    - **currency** (*String.t()*): Three-letter fiat currency code for notional values (e.g., "usd").
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
-  @spec notional_balances(currency :: String.t(), account :: String.t() | nil) :: {:ok, list(map)} | {:error, any}
-  def notional_balances(currency, account \\ nil) do
+  @spec notional_balances(currency :: String.t(), opts :: [account: String.t()]) :: {:ok, list(map)} | {:error, any}
+  def notional_balances(currency, opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@notional_balances_url |> String.replace(":currency", currency), payload)
+    post(@notional_balances_url |> String.replace(":currency", currency), payload, opts: [path: @notional_balances_url])
       |> Utils.handle_response()
   end
 
@@ -817,94 +813,84 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **currency** (optional): Currency code to filter transfers.
-    - **timestamp** (optional): Only return transfers on or after this timestamp.
-    - **limit_transfers** (optional): Maximum number of transfers to return.
-    - **show_completed_deposit_advances** (optional): Whether to show completed deposit advances.
-    - **account** (optional): Specifies the sub-account.
+    - **opts** (*keyword list, optional*): Options for filtering transfers.
+      - **:currency** (*String.t()*): Currency code to filter transfers.
+      - **:timestamp** (*non_neg_integer()*): Only return transfers on or after this timestamp.
+      - **:limit_transfers** (*non_neg_integer()*): Maximum number of transfers to return.
+      - **:show_completed_deposit_advances** (*boolean()*): Whether to show completed deposit advances.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec transfers(
-          currency                        :: String.t()         | nil,
-          timestamp                       :: non_neg_integer()  | nil,
-          limit_transfers                 :: non_neg_integer()  | nil,
-          show_completed_deposit_advances :: boolean            | nil,
-          account                         :: String.t()         | nil
+          opts :: [
+            {:currency,                         String.t()},
+            {:timestamp,                        non_neg_integer()},
+            {:limit_transfers,                  non_neg_integer()},
+            {:show_completed_deposit_advances,  boolean()},
+            {:account,                          String.t()}
+          ]
         ) :: {:ok, list(map)} | {:error, any}
-  def transfers(
-        currency                        \\ nil,
-        timestamp                       \\ nil,
-        limit_transfers                 \\ nil,
-        show_completed_deposit_advances \\ nil,
-        account                         \\ nil
-      ) do
+  def transfers(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("currency",                        currency)
-      |> Utils.maybe_put("timestamp",                       timestamp)
-      |> Utils.maybe_put("limit_transfers",                 limit_transfers)
-      |> Utils.maybe_put("show_completed_deposit_advances", show_completed_deposit_advances)
-      |> Utils.maybe_put("account",                         account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@transfers_url, payload)
+    post(@transfers_url, payload, opts: [path: @transfers_url])
       |> Utils.handle_response()
   end
+
   @doc """
   Fetches transaction details, including trades and transfers.
 
   ## Parameters
 
-    - **timestamp_nanos** (optional): Only return transactions on or after this timestamp in nanos.
-    - **limit** (optional): Maximum number of transfers to return (default is 100).
-    - **continuation_token** (optional): Token for pagination in subsequent requests.
-    - **account** (optional): Specifies the sub-account.
+    - **opts** (*keyword list, optional*): Options for filtering transactions.
+      - **:timestamp_nanos** (*non_neg_integer()*): Only return transactions on or after this timestamp in nanoseconds.
+      - **:limit** (*non_neg_integer()*): Maximum number of transactions to return (default is 100).
+      - **:continuation_token** (*String.t()*): Token for pagination in subsequent requests.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec transactions(
-          timestamp_nanos     :: non_neg_integer()  | nil,
-          limit               :: non_neg_integer()  | nil,
-          continuation_token  :: String.t()         | nil,
-          account             :: String.t()         | nil
+          opts :: [
+           {:timestamp_nanos,     non_neg_integer()},
+           {:limit,               non_neg_integer()},
+           {:continuation_token,  String.t()},
+           {:account,             String.t()}
+         ]
         ) :: {:ok, map} | {:error, any}
-  def transactions(
-        timestamp_nanos     \\ nil,
-        limit               \\ nil,
-        continuation_token  \\ nil,
-        account             \\ nil
-      ) do
+  def transactions(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("timestamp_nanos",     timestamp_nanos)
-      |> Utils.maybe_put("limit",               limit)
-      |> Utils.maybe_put("continuation_token",  continuation_token)
-      |> Utils.maybe_put("account",             account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@transactions_url, payload)
+    post(@transactions_url, payload, opts: [path: @transactions_url])
       |> Utils.handle_response()
   end
-
-
 
   @doc """
   Estimates gas fees for a cryptocurrency withdrawal.
 
   ## Parameters
 
-    - **currency**: The cryptocurrency code (e.g., "eth").
-    - **address**: Destination cryptocurrency address.
-    - **amount**: The amount to withdraw.
-    - **account** (optional): Specifies the sub-account.
+    - **currency** (*String.t()*): The cryptocurrency code (e.g., "eth").
+    - **address** (*String.t()*): Destination cryptocurrency address.
+    - **amount** (*String.t()*): The amount to withdraw.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec estimate_gas_fee(
-          currency  :: String.t(),
-          address   :: String.t(),
-          amount    :: String.t(),
-          account   :: String.t() | nil
+          currency :: String.t(),
+          address  :: String.t(),
+          amount   :: String.t(),
+          opts     :: [account: String.t()]
         ) :: {:ok, map} | {:error, any}
-  def estimate_gas_fee(currency, address, amount, account \\ nil) do
+  def estimate_gas_fee(currency, address, amount, opts \\ []) do
     payload = %{
       "address" => address,
       "amount"  => amount
     }
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@gas_fee_estimation_url |> String.replace(":currency_code", currency), payload)
+    url = @gas_fee_estimation_url |> String.replace(":currency_code", currency)
+
+    post(url, payload, opts: [path: @gas_fee_estimation_url])
       |> Utils.handle_response()
   end
 
@@ -913,69 +899,66 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **currency**: The cryptocurrency code (e.g., "btc").
-    - **address**: The destination cryptocurrency address.
-    - **amount**: The amount to withdraw.
-    - **client_transfer_id** (optional): Unique identifier for the withdrawal.
-    - **memo** (optional): Memo for addresses requiring it.
-    - **account** (optional): Specifies the sub-account.
+    - **currency** (*String.t()*): The cryptocurrency code (e.g., "btc").
+    - **address** (*String.t()*): The destination cryptocurrency address.
+    - **amount** (*String.t()*): The amount to withdraw.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:client_transfer_id** (*String.t()*): Unique identifier for the withdrawal.
+      - **:memo** (*String.t()*): Memo for addresses requiring it.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec withdraw_crypto_funds(
-          currency           :: String.t(),
-          address            :: String.t(),
-          amount             :: String.t(),
-          client_transfer_id :: String.t() | nil,
-          memo               :: String.t() | nil,
-          account            :: String.t() | nil
+          currency :: String.t(),
+          address  :: String.t(),
+          amount   :: String.t(),
+          opts     :: [
+            {:client_transfer_id, String.t()},
+            {:memo,               String.t()},
+            {:account,            String.t()}
+          ]
         ) :: {:ok, map} | {:error, any}
-  def withdraw_crypto_funds(
-        currency,
-        address,
-        amount,
-        client_transfer_id \\ nil,
-        memo               \\ nil,
-        account            \\ nil
-      ) do
+  def withdraw_crypto_funds(currency, address, amount, opts \\ []) do
     payload = %{
       "address" => address,
       "amount"  => amount
     }
-      |> Utils.maybe_put("clientTransferId",  client_transfer_id)
-      |> Utils.maybe_put("memo",              memo)
-      |> Utils.maybe_put("account",           account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@withdraw_crypto_funds_url |> String.replace(":currency", currency), payload)
+    url = @withdraw_crypto_funds_url |> String.replace(":currency", currency)
+
+    post(url, payload, opts: [path: @withdraw_crypto_funds_url])
       |> Utils.handle_response()
   end
-
-
   @doc """
   Executes an internal transfer between two accounts.
 
   ## Parameters
 
-    - **currency**: Currency code (e.g., "btc").
-    - **source_account**: The account to transfer funds from.
-    - **target_account**: The account to transfer funds to.
-    - **amount**: The amount to transfer.
-    - **client_transfer_id** (optional): Unique identifier for the transfer.
+    - **currency** (*String.t()*): Currency code (e.g., "btc").
+    - **source_account** (*String.t()*): The account to transfer funds from.
+    - **target_account** (*String.t()*): The account to transfer funds to.
+    - **amount** (*String.t()*): The amount to transfer.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:client_transfer_id** (*String.t()*): Unique identifier for the transfer.
   """
   @spec execute_internal_transfer(
-          currency          :: String.t(),
-          source_account    :: String.t(),
-          target_account    :: String.t(),
-          amount            :: String.t(),
-          client_transfer_id  :: String.t() | nil
+          currency         :: String.t(),
+          source_account   :: String.t(),
+          target_account   :: String.t(),
+          amount           :: String.t(),
+          opts             :: [client_transfer_id: String.t()]
         ) :: {:ok, map} | {:error, any}
-  def execute_internal_transfer(currency, source_account, target_account, amount, client_transfer_id \\ nil) do
+  def execute_internal_transfer(currency, source_account, target_account, amount, opts \\ []) do
     payload = %{
       "sourceAccount" => source_account,
       "targetAccount" => target_account,
       "amount"        => amount
     }
-      |> Utils.maybe_put("clientTransferId", client_transfer_id)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@internal_transfers_url |> String.replace(":currency", currency), payload)
+    url = @internal_transfers_url |> String.replace(":currency", currency)
+
+    post(url, payload, opts: [path: @internal_transfers_url])
       |> Utils.handle_response()
   end
 
@@ -983,22 +966,24 @@ defmodule Geminex.API.Private do
   Fetches custody account fees.
 
   ## Parameters
-    - **timestamp** (optional): Only return Custody fee records on or after this timestamp.
-    - **limit_transfers** (optional): The maximum number of Custody fee records to return.
-    - **account** (optional): Specifies the sub-account.
+
+    - **opts** (*keyword list, optional*): Options for filtering custody fees.
+      - **:timestamp** (*non_neg_integer()*): Only return Custody fee records on or after this timestamp.
+      - **:limit_transfers** (*non_neg_integer()*): The maximum number of Custody fee records to return.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec custody_account_fees(
-          timestamp       :: non_neg_integer(),
-          limit_transfers :: non_neg_integer(),
-          account         :: String.t()
+          opts :: [
+            {:timestamp,        non_neg_integer()},
+            {:limit_transfers,  non_neg_integer()},
+            {:account,          String.t()}
+          ]
         ) :: {:ok, list(map)} | {:error, any}
-  def custody_account_fees(timestamp \\ nil, limit_transfers \\ nil, account \\ nil) do
+  def custody_account_fees(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("timestamp",       timestamp)
-      |> Utils.maybe_put("limit_transfers", limit_transfers)
-      |> Utils.maybe_put("account",         account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@custody_account_fees_url, payload)
+    post(@custody_account_fees_url, payload, opts: [path: @custody_account_fees_url])
       |> Utils.handle_response()
   end
 
@@ -1006,21 +991,24 @@ defmodule Geminex.API.Private do
   Retrieves deposit addresses for a specified network.
 
   ## Parameters
-    - **network**: Cryptocurrency network (e.g., "bitcoin", "ethereum").
-    - **timestamp** (optional): Only return addresses created on or after this timestamp.
-    - **account** (optional): Specifies the sub-account.
+
+    - **network** (*String.t()*): Cryptocurrency network (e.g., "bitcoin", "ethereum").
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:timestamp** (*non_neg_integer()*): Only return addresses created on or after this timestamp.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec deposit_addresses(
-          network     :: String.t(),
-          timestamp   :: non_neg_integer(),
-          account     :: String.t()
+          network :: String.t(),
+          opts    :: [
+             {:timestamp, non_neg_integer()},
+             {:account,   String.t()}
+           ]
         ) :: {:ok, list(map)} | {:error, any}
-  def deposit_addresses(network, timestamp \\ nil, account \\ nil) do
+  def deposit_addresses(network, opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("timestamp", timestamp)
-      |> Utils.maybe_put("account",   account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@deposit_addresses_url |> String.replace(":network", network), payload)
+    post(@deposit_addresses_url |> String.replace(":network", network), payload, opts: [path: @deposit_addresses_url])
       |> Utils.handle_response()
   end
 
@@ -1028,24 +1016,28 @@ defmodule Geminex.API.Private do
   Generates a new deposit address for a specified network.
 
   ## Parameters
-    - **network**: Cryptocurrency network (e.g., "bitcoin", "litecoin").
-    - **label** (optional): Label for the deposit address.
-    - **legacy** (optional): Whether to generate a legacy P2SH-P2PKH litecoin address.
-    - **account** (optional): Specifies the sub-account.
+
+    - **network** (*String.t()*): Cryptocurrency network (e.g., "bitcoin", "litecoin").
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:label** (*String.t()*): Label for the deposit address.
+      - **:legacy** (*boolean()*): Whether to generate a legacy P2SH-P2PKH litecoin address.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec new_deposit_address(
           network :: String.t(),
-          label   :: String.t(),
-          legacy  :: boolean(),
-          account :: String.t()
+          opts    :: [
+            {:label,    String.t()},
+            {:legacy,   boolean()},
+            {:account,  String.t()}
+          ]
         ) :: {:ok, map} | {:error, any}
-  def new_deposit_address(network, label \\ nil, legacy \\ nil, account \\ nil) do
+  def new_deposit_address(network, opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("label",   label)
-      |> Utils.maybe_put("legacy",  legacy)
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@new_deposit_address_url |> String.replace(":network", network), payload)
+    url = @new_deposit_address_url |> String.replace(":network", network)
+
+    post(url, payload, opts: [path: @new_deposit_address_url])
       |> Utils.handle_response()
   end
 
@@ -1053,73 +1045,68 @@ defmodule Geminex.API.Private do
   Adds a bank account for the user.
 
   ## Parameters
-    - **account_number**: Bank account number.
-    - **routing**: Routing number.
-    - **type**: Type of bank account, "checking" or "savings".
-    - **name**: Name on the bank account.
-    - **account** (optional): Specifies the sub-account.
+
+    - **account_number** (*String.t()*): Bank account number.
+    - **routing** (*String.t()*): Routing number.
+    - **type** (*String.t()*): Type of bank account, either **"checking"** or **"savings"**.
+    - **name** (*String.t()*): Name on the bank account.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec add_bank(
-          account_number  :: String.t(),
-          routing         :: String.t(),
-          type            :: String.t(),
-          name            :: String.t(),
-          account         :: String.t()
+          account_number :: String.t(),
+          routing        :: String.t(),
+          type           :: String.t(),
+          name           :: String.t(),
+          opts           :: [account: String.t()]
         ) :: {:ok, map} | {:error, any}
-  def add_bank(account_number, routing, type, name, account \\ nil) do
+  def add_bank(account_number, routing, type, name, opts \\ []) do
     payload = %{
       "accountnumber" => account_number,
       "routing"       => routing,
       "type"          => type,
       "name"          => name
     }
-      |> Utils.maybe_put("account",   account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@add_bank_url, payload)
+    post(@add_bank_url, payload, opts: [path: @add_bank_url])
       |> Utils.handle_response()
   end
-
   @doc """
   Adds a CAD bank account for the user.
 
   ## Parameters
-    - **swift_code**: SWIFT code.
-    - **account_number**: Bank account number.
-    - **institution_number** (optional): Institution number of the account.
-    - **branch_number** (optional): Branch number of the account.
-    - **type**: Type of bank account, "checking" or "savings".
-    - **name**: Name on the bank account.
-    - **account** (optional): Specifies the sub-account.
+
+    - **swift_code** (*String.t()*): SWIFT code.
+    - **account_number** (*String.t()*): Bank account number.
+    - **type** (*String.t()*): Type of bank account, either "checking" or "savings".
+    - **name** (*String.t()*): Name on the bank account.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:institution_number** (*String.t()*): Institution number of the account.
+      - **:branch_number** (*String.t()*): Branch number of the account.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec add_bank_cad(
-          swift_code          :: String.t(),
-          account_number      :: String.t(),
-          type                :: String.t(),
-          name                :: String.t(),
-          account             :: String.t() | nil,
-          institution_number  :: String.t() | nil,
-          branch_number       :: String.t() | nil
+          swift_code      :: String.t(),
+          account_number  :: String.t(),
+          type            :: String.t(),
+          name            :: String.t(),
+          opts            :: [
+            {:institution_number, String.t()},
+            {:branch_number,      String.t()},
+            {:account,            String.t()}
+          ]
         ) :: {:ok, map} | {:error, any}
-  def add_bank_cad(
-        swift_code,
-        account_number,
-        type,
-        name,
-        account             \\ nil,
-        institution_number  \\ nil,
-        branch_number       \\ nil
-      ) do
+  def add_bank_cad(swift_code, account_number, type, name, opts \\ []) do
     payload = %{
       "swiftcode"     => swift_code,
       "accountnumber" => account_number,
       "type"          => type,
       "name"          => name
     }
-      |> Utils.maybe_put("account",             account)
-      |> Utils.maybe_put("institution_number",  institution_number)
-      |> Utils.maybe_put("branch_number",       branch_number)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@add_bank_cad_url, payload)
+    post(@add_bank_cad_url, payload, opts: [path: @add_bank_cad_url])
       |> Utils.handle_response()
   end
 
@@ -1127,14 +1114,16 @@ defmodule Geminex.API.Private do
   Fetches payment methods and available fiat balances.
 
   ## Parameters
-    - **account** (optional): Specifies the sub-account.
-  """
-  @spec payment_methods(account :: String.t() | nil) :: {:ok, map} | {:error, any}
-  def payment_methods(account \\ nil) do
-    payload = %{}
-      |> Utils.maybe_put("account", account)
 
-    post(@payment_methods_url, payload)
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
+  """
+  @spec payment_methods(opts :: [account: String.t()]) :: {:ok, map} | {:error, any}
+  def payment_methods(opts \\ []) do
+    payload = %{}
+      |> Utils.merge_map_with_string_keys(opts)
+
+    post(@payment_methods_url, payload, opts: [path: @payment_methods_url])
       |> Utils.handle_response()
   end
 
@@ -1142,14 +1131,16 @@ defmodule Geminex.API.Private do
   Retrieves the staking balances for the account.
 
   ## Parameters
-    - **account** (optional): Specifies the sub-account.
-  """
-  @spec staking_balances(account :: String.t() | nil) :: {:ok, list(map)} | {:error, any}
-  def staking_balances(account \\ nil) do
-    payload = %{}
-      |> Utils.maybe_put("account", account)
 
-    post(@staking_balances_url, payload)
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
+  """
+  @spec staking_balances(opts :: [account: String.t()]) :: {:ok, list(map)} | {:error, any}
+  def staking_balances(opts \\ []) do
+    payload = %{}
+      |> Utils.merge_map_with_string_keys(opts)
+
+    post(@staking_balances_url, payload, opts: [path: @staking_balances_url])
       |> Utils.handle_response()
   end
 
@@ -1158,7 +1149,7 @@ defmodule Geminex.API.Private do
   """
   @spec staking_rates() :: {:ok, map} | {:error, any}
   def staking_rates() do
-    get(@staking_rates_url)
+    get(@staking_rates_url, opts: [path: @staking_rates_url])
       |> Utils.handle_response()
   end
 
@@ -1166,27 +1157,28 @@ defmodule Geminex.API.Private do
   Retrieves staking rewards, showing historical payments and accrual data.
 
   ## Parameters
-    - **since**: Start date in ISO datetime format.
-    - **until** (optional): End date in ISO datetime format. Defaults to the current time.
-    - **provider_id** (optional): ID of the provider.
-    - **currency** (optional): Currency code, e.g., "ETH".
-    - **account** (optional): Specifies the sub-account (required for Master API keys).
+
+    - **since** (*String.t()*): Start date in ISO datetime format.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:until** (*String.t()*): End date in ISO datetime format. Defaults to the current time.
+      - **:provider_id** (*String.t()*): ID of the provider.
+      - **:currency** (*String.t()*): Currency code, e.g., "ETH".
+      - **:account** (*String.t()*): Specifies the sub-account (required for Master API keys).
   """
   @spec staking_rewards(
-          since       :: String.t(),
-          until       :: String.t() | nil,
-          provider_id :: String.t() | nil,
-          currency    :: String.t() | nil,
-          account     :: String.t() | nil
+          since :: String.t(),
+          opts  :: [
+            {:until,        String.t()},
+            {:provider_id,  String.t()},
+            {:currency,     String.t()},
+            {:account,      String.t()}
+          ]
         ) :: {:ok, map} | {:error, any}
-  def staking_rewards(since, until \\ nil, provider_id \\ nil, currency \\ nil, account \\ nil) do
+  def staking_rewards(since, opts \\ []) do
     payload = %{"since" => since}
-      |> Utils.maybe_put("account",     account)
-      |> Utils.maybe_put("until",       until)
-      |> Utils.maybe_put("providerId",  provider_id)
-      |> Utils.maybe_put("currency",    currency)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@staking_rewards_url, payload)
+    post(@staking_rewards_url, payload, opts: [path: @staking_rewards_url])
       |> Utils.handle_response()
   end
 
@@ -1194,46 +1186,34 @@ defmodule Geminex.API.Private do
   Retrieves staking transaction history, including deposits, redemptions, and interest accruals.
 
   ## Parameters
-    - **since** (optional): Start date in ISO datetime format.
-    - **until** (optional): End date in ISO datetime format, defaults to the current time.
-    - **limit** (optional): Max number of transactions to return.
-    - **provider_id** (optional): ID of the provider.
-    - **currency** (optional): Currency code, e.g., "ETH".
-    - **interest_only** (optional): Set to true to only return daily interest transactions.
-    - **sort_asc** (optional): Set to true to sort transactions in ascending order.
-    - **account** (optional): Specifies the sub-account.
+
+    - **opts** (*keyword list, optional*): Options for filtering staking history.
+      - **:since** (*String.t()*): Start date in ISO datetime format.
+      - **:until** (*String.t()*): End date in ISO datetime format, defaults to the current time.
+      - **:limit** (*non_neg_integer()*): Max number of transactions to return.
+      - **:provider_id** (*String.t()*): ID of the provider.
+      - **:currency** (*String.t()*): Currency code, e.g., "ETH".
+      - **:interest_only** (*boolean()*): Set to true to only return daily interest transactions.
+      - **:sort_asc** (*boolean()*): Set to true to sort transactions in ascending order.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec staking_history(
-          since         :: String.t()         | nil,
-          until         :: String.t()         | nil,
-          limit         :: non_neg_integer()  | nil,
-          provider_id   :: String.t()         | nil,
-          currency      :: String.t()         | nil,
-          interest_only :: boolean            | nil,
-          sort_asc      :: boolean            | nil,
-          account       :: String.t()         | nil
+          opts :: [
+            {:since,          String.t()},
+            {:until,          String.t()},
+            {:limit,          non_neg_integer()},
+            {:provider_id,    String.t()},
+            {:currency,       String.t()},
+            {:interest_only,  boolean()},
+            {:sort_asc,       boolean()},
+            {:account,        String.t()}
+          ]
         ) :: {:ok, list(map)} | {:error, any}
-  def staking_history(
-        since         \\ nil,
-        until         \\ nil,
-        limit         \\ nil,
-        provider_id   \\ nil,
-        currency      \\ nil,
-        interest_only \\ nil,
-        sort_asc      \\ nil,
-        account       \\ nil
-      ) do
+  def staking_history(opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("since",         since)
-      |> Utils.maybe_put("until",         until)
-      |> Utils.maybe_put("limit",         limit)
-      |> Utils.maybe_put("providerId",    provider_id)
-      |> Utils.maybe_put("currency",      currency)
-      |> Utils.maybe_put("interestOnly",  interest_only)
-      |> Utils.maybe_put("sortAsc",       sort_asc)
-      |> Utils.maybe_put("account",       account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@staking_history_url, payload)
+    post(@staking_history_url, payload, opts: [path: @staking_history_url])
       |> Utils.handle_response()
   end
 
@@ -1241,26 +1221,28 @@ defmodule Geminex.API.Private do
   Initiates a staking deposit.
 
   ## Parameters
-    - **provider_id**: The provider ID in UUID4 format.
-    - **currency**: The currency to deposit, e.g., "ETH".
-    - **amount**: Amount of currency to deposit.
-    - **account** (optional): Specifies the sub-account.
+
+    - **provider_id** (*String.t()*): The provider ID in UUID4 format.
+    - **currency** (*String.t()*): The currency to deposit, e.g., "ETH".
+    - **amount** (*String.t()*): Amount of currency to deposit.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec stake(
           provider_id :: String.t(),
           currency    :: String.t(),
           amount      :: String.t(),
-          account     :: String.t() | nil
+          opts        :: [account: String.t()]
         ) :: {:ok, map} | {:error, any}
-  def stake(provider_id, currency, amount, account \\ nil) do
+  def stake(provider_id, currency, amount, opts \\ []) do
     payload = %{
-      "providerId"  => provider_id,
-      "currency"    => currency,
-      "amount"      => amount
+      "providerId" => provider_id,
+      "currency"   => currency,
+      "amount"     => amount
     }
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@staking_deposits_url, payload)
+    post(@staking_deposits_url, payload, opts: [path: @staking_deposits_url])
       |> Utils.handle_response()
   end
 
@@ -1268,26 +1250,28 @@ defmodule Geminex.API.Private do
   Initiates a staking withdrawal.
 
   ## Parameters
-    - **provider_id**: The provider ID in UUID4 format.
-    - **currency**: The currency to withdraw, e.g., "ETH".
-    - **amount**: Amount of currency to withdraw.
-    - **account** (optional): Specifies the sub-account.
+
+    - **provider_id** (*String.t()*): The provider ID in UUID4 format.
+    - **currency** (*String.t()*): The currency to withdraw, e.g., "ETH".
+    - **amount** (*String.t()*): Amount of currency to withdraw.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec unstake(
           provider_id :: String.t(),
           currency    :: String.t(),
           amount      :: String.t(),
-          account     :: String.t() | nil
+          opts        :: [account: String.t()]
         ) :: {:ok, map} | {:error, any}
-  def unstake(provider_id, currency, amount, account \\ nil) do
+  def unstake(provider_id, currency, amount, opts \\ []) do
     payload = %{
-      "providerId"  => provider_id,
-      "currency"    => currency,
-      "amount"      => amount
+      "providerId" => provider_id,
+      "currency"   => currency,
+      "amount"     => amount
     }
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@staking_withdrawals_url, payload)
+    post(@staking_withdrawals_url, payload, opts: [path: @staking_withdrawals_url])
       |> Utils.handle_response()
   end
 
@@ -1295,28 +1279,33 @@ defmodule Geminex.API.Private do
   Creates a request to add an address to the approved address list.
 
   ## Parameters
-    - **network**: The network for the address, e.g., "ethereum", "bitcoin".
-    - **address**: The address to add to the approved address list.
-    - **label**: The label for the approved address.
-    - **account** (optional): Specifies the sub-account.
-    - **memo** (optional): Memo for specific address formats, e.g., Cosmos.
+
+    - **network** (*String.t()*): The network for the address, e.g., "ethereum", "bitcoin".
+    - **address** (*String.t()*): The address to add to the approved address list.
+    - **label** (*String.t()*): The label for the approved address.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
+      - **:memo** (*String.t()*): Memo for specific address formats, e.g., Cosmos.
   """
   @spec create_address_request(
           network :: String.t(),
           address :: String.t(),
           label   :: String.t(),
-          account :: String.t() | nil,
-          memo    :: String.t() | nil
+          opts    :: [
+            {:account,  String.t()},
+            {:memo,     String.t()}
+          ]
         ) :: {:ok, map} | {:error, any}
-  def create_address_request(network, address, label, account \\ nil, memo \\ nil) do
+  def create_address_request(network, address, label, opts \\ []) do
     payload = %{
       "address" => address,
       "label"   => label
     }
-      |> Utils.maybe_put("account", account)
-      |> Utils.maybe_put("memo",    memo)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@create_address_request_url |> String.replace(":network", network), payload)
+    url = @create_address_request_url |> String.replace(":network", network)
+
+    post(url, payload, opts: [path: @create_address_request_url])
       |> Utils.handle_response()
   end
 
@@ -1324,18 +1313,22 @@ defmodule Geminex.API.Private do
   Views the approved address list for a specific network.
 
   ## Parameters
-    - **network**: The network to view the approved address list for, e.g., "ethereum".
-    - **account** (optional): Specifies the sub-account.
+
+    - **network** (*String.t()*): The network to view the approved address list for, e.g., "ethereum".
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec view_approved_addresses(
           network :: String.t(),
-          account :: String.t() | nil
+          opts    :: [account: String.t()]
         ) :: {:ok, map} | {:error, any}
-  def view_approved_addresses(network, account \\ nil) do
+  def view_approved_addresses(network, opts \\ []) do
     payload = %{}
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@view_approved_addresses_url |> String.replace(":network", network), payload)
+    url = @view_approved_addresses_url |> String.replace(":network", network)
+
+    post(url, payload, opts: [path: @view_approved_addresses_url])
       |> Utils.handle_response()
   end
 
@@ -1343,20 +1336,24 @@ defmodule Geminex.API.Private do
   Removes an address from the approved address list.
 
   ## Parameters
-    - **network**: The network for the address, e.g., "ethereum".
-    - **address**: The address to remove from the approved address list.
-    - **account** (optional): Specifies the sub-account.
+
+    - **network** (*String.t()*): The network for the address, e.g., "ethereum".
+    - **address** (*String.t()*): The address to remove from the approved address list.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
   """
   @spec remove_address(
           network :: String.t(),
           address :: String.t(),
-          account :: String.t() | nil
+          opts    :: [account: String.t()]
         ) :: {:ok, map} | {:error, any}
-  def remove_address(network, address, account \\ nil) do
+  def remove_address(network, address, opts \\ []) do
     payload = %{"address" => address}
-      |> Utils.maybe_put("account", account)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@remove_addresses_from_approved_addresses_list_url |> String.replace(":network", network), payload)
+    url = @remove_addresses_from_approved_addresses_list_url |> String.replace(":network", network)
+
+    post(url, payload, opts: [path: @remove_addresses_from_approved_addresses_list_url])
       |> Utils.handle_response()
   end
 
@@ -1364,14 +1361,16 @@ defmodule Geminex.API.Private do
   Fetches account details, including user and account information.
 
   ## Parameters
-    - **account** (optional): Specifies the sub-account.
-  """
-  @spec account_detail(account :: String.t() | nil) :: {:ok, map} | {:error, any}
-  def account_detail(account \\ nil) do
-    payload = %{}
-      |> Utils.maybe_put("account", account)
 
-    post(@account_detail_url, payload)
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:account** (*String.t()*): Specifies the sub-account.
+  """
+  @spec account_detail(opts :: [account: String.t()]) :: {:ok, map} | {:error, any}
+  def account_detail(opts \\ []) do
+    payload = %{}
+      |> Utils.merge_map_with_string_keys(opts)
+
+    post(@account_detail_url, payload, opts: [path: @account_detail_url])
       |> Utils.handle_response()
   end
 
@@ -1379,15 +1378,17 @@ defmodule Geminex.API.Private do
   Creates a new account within the master group.
 
   ## Parameters
-    - **name**: A unique name for the new account.
-    - **type** (optional): Type of account. Accepts "exchange" or "custody". Defaults to "exchange".
-  """
-  @spec create_account(name :: String.t(), type :: String.t() | nil) :: {:ok, map} | {:error, any}
-  def create_account(name, type \\ "exchange") do
-    payload = %{"name" => name}
-      |> Utils.maybe_put("type", type)
 
-    post(@create_account_url, payload)
+    - **name** (*String.t()*): A unique name for the new account.
+    - **opts** (*keyword list, optional*): Additional options.
+      - **:type** (*String.t()*): Type of account. Accepts **"exchange"** or **"custody"**. Defaults to **"exchange"**.
+  """
+  @spec create_account(name :: String.t(), opts :: [type: String.t()]) :: {:ok, map} | {:error, any}
+  def create_account(name, opts \\ [type: "exchange"]) do
+    payload = %{"name" => name}
+      |> Utils.merge_map_with_string_keys(opts)
+
+    post(@create_account_url, payload, opts: [path: @create_account_url])
       |> Utils.handle_response()
   end
 
@@ -1395,23 +1396,24 @@ defmodule Geminex.API.Private do
   Renames an account within the master group.
 
   ## Parameters
-    - **account**: Short name of the existing account.
-    - **new_name** (optional): New unique name for the account.
-    - **new_account** (optional): New unique short name for the account.
+
+    - **account** (*String.t()*): Short name of the existing account.
+    - **opts** (*keyword list, optional*): Additional options for renaming the account.
+      - **:new_name** (*String.t()*): New unique name for the account.
+      - **:new_account** (*String.t()*): New unique short name for the account.
   """
   @spec rename_account(
-          account     :: String.t(),
-          new_name    :: String.t() | nil,
-          new_account :: String.t() | nil
+          account :: String.t(),
+          opts    :: [
+            {:new_name,     String.t()},
+            {:new_account,  String.t()}
+          ]
         ) :: {:ok, map} | {:error, any}
-  def rename_account(account, new_name \\ nil, new_account \\ nil) do
-    payload = %{
-      "account" => account
-    }
-      |> Utils.maybe_put("newName",     new_name)
-      |> Utils.maybe_put("newAccount",  new_account)
+  def rename_account(account, opts \\ []) do
+    payload = %{"account" => account}
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@rename_account_url, payload)
+    post(@rename_account_url, payload, opts: [path: @rename_account_url])
       |> Utils.handle_response()
   end
 
@@ -1419,19 +1421,22 @@ defmodule Geminex.API.Private do
   Fetches a list of accounts within the master group.
 
   ## Parameters
-    - **limit_accounts** (optional): Max number of accounts to return. Default is 500.
-    - **timestamp** (optional): Only return accounts created on or before this timestamp.
+
+    - **opts** (*keyword list, optional*): Options for filtering the account list.
+      - **:limit_accounts** (*non_neg_integer()*): Max number of accounts to return. Default is 500.
+      - **:timestamp** (*non_neg_integer()*): Only return accounts created on or before this timestamp.
   """
   @spec list_accounts(
-          limit_accounts  :: non_neg_integer() | nil,
-          timestamp       :: non_neg_integer() | nil
+          opts :: [
+            {:limit_accounts, non_neg_integer()},
+            {:timestamp,      non_neg_integer()}
+          ]
         ) :: {:ok, list(map)} | {:error, any}
-  def list_accounts(limit_accounts \\ 500, timestamp \\ nil) do
+  def list_accounts(opts \\ [limit_accounts: 500]) do
     payload = %{}
-      |> Utils.maybe_put("limit_accounts",  limit_accounts)
-      |> Utils.maybe_put("timestamp",       timestamp)
+      |> Utils.merge_map_with_string_keys(opts)
 
-    post(@accounts_in_master_group_url, payload)
+    post(@accounts_in_master_group_url, payload, opts: [path: @accounts_in_master_group_url])
       |> Utils.handle_response()
   end
 
@@ -1440,7 +1445,7 @@ defmodule Geminex.API.Private do
   """
   @spec heartbeat() :: {:ok, map} | {:error, any}
   def heartbeat do
-    post(@heartbeat_url, %{})
+    post(@heartbeat_url, %{}, opts: [path: @heartbeat_url])
       |> Utils.handle_response()
   end
 end

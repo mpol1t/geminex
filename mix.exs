@@ -4,11 +4,16 @@ defmodule Geminex.MixProject do
   def project do
     [
       app: :geminex,
-      version: "0.1.0",
+      version: "0.0.1",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      elixirc_paths: elixirc_paths(Mix.env())
+      elixirc_paths: elixirc_paths(Mix.env()),
+      description:      "Geminex is an Elixir client for Gemini's API, providing streamlined access to trading, account management, and market data. It simplifies integration with Gemini’s REST API, handling authentication, requests, and responses for both public and private endpoints. ",
+      package:          [
+        licenses:         ["Apache-2.0"],
+        links:            %{"GitHub" => "https://github.com/mpol1t/geminex"}
+      ]
     ]
   end
 
@@ -25,14 +30,13 @@ defmodule Geminex.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:httpoison, "~> 1.8"},
-      {:jason, "~> 1.2"},
-      {:tesla, "~> 1.12.1"},
-      {:mox, "~> 1.0", only: :test},
-      {:stream_data, "~> 1.1.1", only: :test},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:styler, "~> 1.0.0", only: [:dev, :test], runtime: false}
+      {:jason,        "~> 1.2"},
+      {:tesla,        "~> 1.12.1"},
+      {:stream_data,  "~> 1.1.1",   only: :test},
+      {:ex_doc,       "~> 0.34.2",  only: :dev,           runtime: false},
+      {:dialyxir,     "~> 1.4",     only: [:dev, :test],  runtime: false},
+      {:credo,        "~> 1.7",     only: [:dev, :test],  runtime: false},
+      {:styler,       "~> 1.0.0",   only: [:dev, :test],  runtime: false}
     ]
   end
 end

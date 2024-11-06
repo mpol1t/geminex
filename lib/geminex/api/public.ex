@@ -129,52 +129,68 @@ defmodule Geminex.API.Public do
   end
 
   @doc """
-  Retrieves the current order book for the specified symbol.
+  Retrieves the current order book for the specified trading pair symbol.
 
   ## Parameters
 
-    - **symbol**: Trading pair symbol (e.g., "btcusd").
-    - **query** (optional): List of query parameters, e.g., limit_bids, limit_asks.
-  """
-  @spec current_order_book(symbol :: String.t(), query :: list()) :: {:ok, map} | {:error, any}
-  def current_order_book(symbol, limit_bids \\ nil, limit_asks \\ nil) do
-    query = %{}
-      |> Utils.maybe_put_keyword("limit_bids", limit_bids)
-      |> Utils.maybe_put_keyword("limit_asks", limit_asks)
+    - **symbol** (*String.t()*): The trading pair symbol (e.g., **"btcusd"**).
+    - **opts** (*keyword list, optional*): A list of query parameters to customize the order book data.
+      - **:limit_bids** (*non_neg_integer()*): The maximum number of bid orders to retrieve.
+      - **:limit_asks** (*non_neg_integer()*): The maximum number of ask orders to retrieve.
 
+  ## Returns
+
+    - **{:ok, map}** on success, containing the order book data as a map.
+    - **{:error, any}** on failure, with an error reason.
+  """
+  @spec current_order_book(
+          symbol  :: String.t(),
+          opts    :: [
+            {:limit_bids, non_neg_integer()},
+            {:limit_asks, non_neg_integer()}
+          ]
+        ) :: {:ok, map} | {:error, any}
+  def current_order_book(symbol, opts \\ []) do
     @current_order_book_url
-      |> String.replace(":symbol", symbol)
-      |> get(query: query)
-      |> Utils.handle_response()
+    |> String.replace(":symbol", symbol)
+    |> get(query: opts)
+    |> Utils.handle_response()
   end
+
 
   @doc """
-  Retrieves the trade history for the specified symbol.
+  Retrieves the trade history for the specified trading pair symbol.
 
   ## Parameters
 
-    - **symbol**: Trading pair symbol (e.g., "btcusd").
-    - **opts** (optional): List of options such as **timestamp**, **limit_trades**, etc.
+    - **symbol** (*String.t()*): The trading pair symbol (e.g., **"btcusd"**).
+    - **opts** (*keyword list, optional*): A list of options to customize the query.
+      - **:timestamp** (*non_neg_integer()*): The starting timestamp for the trade history.
+      - **:since_tid** (*non_neg_integer()*): The trade ID from which to start fetching trades.
+      - **:limit_trades** (*non_neg_integer()*): The maximum number of trades to retrieve.
+      - **:include_breaks** (*boolean()*): Whether to include breaks between trades. Defaults to **false**.
+
+  ## Returns
+
+    - **{:ok, list(map)}** on success, containing the trade history as a list of maps.
+    - **{:error, any}** on failure, with an error reason.
   """
   @spec trade_history(
-          symbol          :: String.t(),
-          timestamp       :: non_neg_integer()  | nil,
-          since_tid       :: non_neg_integer()  | nil,
-          limit_trades    :: non_neg_integer()  | nil,
-          include_breaks  :: boolean()          | nil
+          symbol  :: String.t(),
+          opts    :: [
+            {:timestamp,      non_neg_integer()},
+            {:since_tid,      non_neg_integer()},
+            {:limit_trades,   non_neg_integer()},
+            {:include_breaks, boolean()}
+          ]
         ) :: {:ok, list(map)} | {:error, any}
-  def trade_history(symbol, timestamp \\ nil, since_tid \\ nil, limit_trades \\ nil, include_breaks \\ nil) do
-    query = %{}
-      |> Utils.maybe_put_keyword("timestamp",       timestamp)
-      |> Utils.maybe_put_keyword("since_tid",       since_tid)
-      |> Utils.maybe_put_keyword("limit_trades",    limit_trades)
-      |> Utils.maybe_put_keyword("include_breaks",  include_breaks)
-
+  def trade_history(symbol, opts \\ []) do
     @trade_history_url
       |> String.replace(":symbol", symbol)
-      |> get(query: query)
+      |> get(query: opts)
       |> Utils.handle_response()
   end
+
 
   @doc """
   Retrieves the price feed for all trading pairs.
@@ -201,10 +217,26 @@ defmodule Geminex.API.Public do
 
   ## Parameters
 
-    - **opts** (optional): List of options such as **fromDate**, **toDate**, **numRows**.
+    - **opts** (*keyword list, optional*): A list of query parameters to customize the report.
+      - **:fromDate** (*non_neg_integer()*): The start date for the report, represented as a Unix timestamp.
+      - **:toDate** (*non_neg_integer()*): The end date for the report, represented as a Unix timestamp.
+      - **:numRows** (*non_neg_integer()*): The maximum number of rows to retrieve in the report.
+
+  ## Returns
+
+    - **{:ok, binary}** on success, containing the binary content of the report file.
+    - **{:error, any}** on failure, with an error reason.
   """
-  @spec funding_amount_report(opts :: list()) :: {:ok, binary} | {:error, any}
+  @spec funding_amount_report(
+          opts :: [
+            {:fromDate, non_neg_integer()},
+            {:toDate,   non_neg_integer()},
+            {:numRows,  non_neg_integer()}
+          ]
+        ) :: {:ok, binary} | {:error, any}
   def funding_amount_report(opts \\ []) do
-    @funding_amount_report_url |> get(query: opts) |> Utils.handle_binary_response()
+    @funding_amount_report_url
+      |> get(query: opts)
+      |> Utils.handle_binary_response()
   end
 end
