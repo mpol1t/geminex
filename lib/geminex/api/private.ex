@@ -19,7 +19,7 @@ defmodule Geminex.API.Private do
         api_secret: System.get_env("GEMINI_API_SECRET")
   """
 
-  use Tesla
+  use Tesla, docs: false
 
   alias Geminex.Utils
 
