@@ -31,7 +31,7 @@ defmodule Geminex.MixProject do
   defp deps do
     [
       {:jason,        "~> 1.2"},
-      {:tesla,        "~> 1.12.1"},
+      {:tesla,        "~> 1.13.2"},
       {:stream_data,  "~> 1.1.1",   only: :test},
       {:ex_doc,       "~> 0.34.2",  only: :dev,           runtime: false},
       {:dialyxir,     "~> 1.4",     only: [:dev, :test],  runtime: false},
