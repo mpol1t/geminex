@@ -29,7 +29,7 @@ Add `geminex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:geminex, "~> 0.0.1"}
+    {:geminex, "~> 0.0.2"}
   ]
 end
 ```
