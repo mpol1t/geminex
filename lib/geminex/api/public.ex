@@ -3,7 +3,7 @@ defmodule Geminex.API.Public do
   Public API endpoints for Gemini.
   """
 
-  use Tesla
+  use Tesla, docs: false
 
   alias Geminex.Utils
 
