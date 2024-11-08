@@ -1,3 +1,12 @@
+[![codecov](https://codecov.io/gh/mpol1t/geminex/graph/badge.svg?token=LBmtXjUrNa)](https://codecov.io/gh/mpol1t/geminex)
+[![Hex.pm](https://img.shields.io/hexpm/v/geminex.svg)](https://hex.pm/packages/geminex)
+[![License](https://img.shields.io/github/license/mpol1t/geminex.svg)](https://github.com/mpol1t/geminex/blob/main/LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-hexdocs-blue.svg)](https://hexdocs.pm/geminex)
+[![Build Status](https://github.com/mpol1t/geminex/actions/workflows/elixir.yml/badge.svg)](https://github.com/mpol1t/geminex/actions)
+[![Downloads](https://img.shields.io/hexpm/dt/geminex.svg)](https://hex.pm/packages/geminex)
+[![Last Commit](https://img.shields.io/github/last-commit/mpol1t/geminex.svg)](https://github.com/mpol1t/geminex/commits/main)
+[![Elixir Version](https://img.shields.io/badge/elixir-~%3E%201.16-purple.svg)](https://elixir-lang.org/)
+
 # Geminex
 
 Geminex is an Elixir client for the [Gemini API](https://docs.gemini.com/), offering easy access to trading, account management, and market data. With both public and private endpoints, it supports order placement, balance checks, market data retrieval, and more, all while abstracting the complexities of API interaction.
@@ -29,7 +38,7 @@ Add `geminex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:geminex, "~> 0.0.2"}
+    {:geminex, "~> 0.0.4"}
   ]
 end
 ```
