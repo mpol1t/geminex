@@ -6,3 +6,5 @@ config :geminex,
        api_secret:  "<api_secret>"
 
 config :tesla, adapter: Tesla.Adapter.Mint
+
+config :logger, level: :warning
