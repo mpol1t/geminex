@@ -6,7 +6,7 @@ defmodule Geminex.Utils do
   handle HTTP responses, and merge maps with keyword lists.
   """
 
-    @doc """
+  @doc """
   Conditionally adds a key-value pair to a map if the value is not **nil**.
 
   ## Parameters
@@ -29,8 +29,8 @@ defmodule Geminex.Utils do
 
   """
   @spec maybe_put(map(), any(), any()) :: map()
-  def maybe_put(map, _key, nil),   do: map
-  def maybe_put(map,  key, value), do: Map.put(map, key, value)
+  def maybe_put(map, _key, nil), do: map
+  def maybe_put(map, key, value), do: Map.put(map, key, value)
 
   @doc """
   Handles HTTP responses by returning **{:ok, body}** for successful responses or **{:error, reason}** for failures.
@@ -59,12 +59,16 @@ defmodule Geminex.Utils do
   """
   @spec handle_response({:ok, Tesla.Env.t()} | {:error, any()}) :: {:ok, any()} | {:error, any()}
   def handle_response({:ok, %Tesla.Env{status: s, body: b}}) when s in 200..299, do: {:ok, b}
-  def handle_response({:ok, %Tesla.Env{status: s, body: b}}),                    do: {:error, %{status: s, body: b}}
-  def handle_response({:error, reason}),                                         do: {:error, reason}
+  def handle_response({:ok, %Tesla.Env{status: s, body: b}}), do: {:error, %{status: s, body: b}}
+  def handle_response({:error, reason}), do: {:error, reason}
 
-  def handle_binary_response({:ok, %Tesla.Env{status: s, body: b}}) when s in 200..299,  do: {:ok, b}
-  def handle_binary_response({:ok, %Tesla.Env{status: s, body: b}}),                     do: {:error, %{status: s, body: b}}
-  def handle_binary_response({:error, reason}),                                          do: {:error, reason}
+  def handle_binary_response({:ok, %Tesla.Env{status: s, body: b}}) when s in 200..299,
+    do: {:ok, b}
+
+  def handle_binary_response({:ok, %Tesla.Env{status: s, body: b}}),
+    do: {:error, %{status: s, body: b}}
+
+  def handle_binary_response({:error, reason}), do: {:error, reason}
 
   @doc """
   Merges a map with a keyword list, ensuring all keys from the keyword list are converted to strings.

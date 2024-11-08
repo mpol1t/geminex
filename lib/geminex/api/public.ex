@@ -15,19 +15,19 @@ defmodule Geminex.API.Public do
   plug(Tesla.Middleware.Logger)
 
   # Public API endpoints
-  @symbols_url                   "/v1/symbols"
-  @symbol_details_url            "/v1/symbols/details/:symbol"
-  @network_url                   "/v1/network/:token"
-  @ticker_url                    "/v1/pubticker/:symbol"
-  @ticker_v2_url                 "/v2/ticker/:symbol"
-  @candles_url                   "/v2/candles/:symbol/:time_frame"
-  @derivatives_candles_url       "/v2/derivatives/candles/:symbol/:time_frame"
-  @fee_promos_url                "/v1/feepromos"
-  @current_order_book_url        "/v1/book/:symbol"
-  @trade_history_url             "/v1/trades/:symbol"
-  @price_feed_url                "/v1/pricefeed"
-  @funding_amount_url            "/v1/fundingamount/:symbol"
-  @funding_amount_report_url     "/v1/fundingamountreport/records.xlsx"
+  @symbols_url "/v1/symbols"
+  @symbol_details_url "/v1/symbols/details/:symbol"
+  @network_url "/v1/network/:token"
+  @ticker_url "/v1/pubticker/:symbol"
+  @ticker_v2_url "/v2/ticker/:symbol"
+  @candles_url "/v2/candles/:symbol/:time_frame"
+  @derivatives_candles_url "/v2/derivatives/candles/:symbol/:time_frame"
+  @fee_promos_url "/v1/feepromos"
+  @current_order_book_url "/v1/book/:symbol"
+  @trade_history_url "/v1/trades/:symbol"
+  @price_feed_url "/v1/pricefeed"
+  @funding_amount_url "/v1/fundingamount/:symbol"
+  @funding_amount_report_url "/v1/fundingamountreport/records.xlsx"
 
   @doc """
   Retrieves all available symbols for trading.
@@ -93,13 +93,14 @@ defmodule Geminex.API.Public do
     - **symbol**: Trading pair symbol (e.g., "btcusd").
     - **time_frame**: Time range for each candle (e.g., "1m", "5m").
   """
-  @spec candles(symbol :: String.t(), time_frame :: String.t()) :: {:ok, list(list(any))} | {:error, any}
+  @spec candles(symbol :: String.t(), time_frame :: String.t()) ::
+          {:ok, list(list(any))} | {:error, any}
   def candles(symbol, time_frame) do
     @candles_url
-      |> String.replace(":symbol",      symbol)
-      |> String.replace(":time_frame",  time_frame)
-      |> get()
-      |> Utils.handle_response()
+    |> String.replace(":symbol", symbol)
+    |> String.replace(":time_frame", time_frame)
+    |> get()
+    |> Utils.handle_response()
   end
 
   @doc """
@@ -110,13 +111,14 @@ defmodule Geminex.API.Public do
     - **symbol**: Perpetual swap symbol (e.g., "BTCGUSDPERP").
     - **time_frame**: Time range for each candle (e.g., "1m").
   """
-  @spec derivatives_candles(symbol :: String.t(), time_frame :: String.t()) :: {:ok, list(list(any))} | {:error, any}
+  @spec derivatives_candles(symbol :: String.t(), time_frame :: String.t()) ::
+          {:ok, list(list(any))} | {:error, any}
   def derivatives_candles(symbol, time_frame) do
     @derivatives_candles_url
-      |> String.replace(":symbol",      symbol)
-      |> String.replace(":time_frame",  time_frame)
-      |> get()
-      |> Utils.handle_response()
+    |> String.replace(":symbol", symbol)
+    |> String.replace(":time_frame", time_frame)
+    |> get()
+    |> Utils.handle_response()
   end
 
   @doc """
@@ -143,8 +145,8 @@ defmodule Geminex.API.Public do
     - **{:error, any}** on failure, with an error reason.
   """
   @spec current_order_book(
-          symbol  :: String.t(),
-          opts    :: [
+          symbol :: String.t(),
+          opts :: [
             {:limit_bids, non_neg_integer()},
             {:limit_asks, non_neg_integer()}
           ]
@@ -155,7 +157,6 @@ defmodule Geminex.API.Public do
     |> get(query: opts)
     |> Utils.handle_response()
   end
-
 
   @doc """
   Retrieves the trade history for the specified trading pair symbol.
@@ -175,21 +176,20 @@ defmodule Geminex.API.Public do
     - **{:error, any}** on failure, with an error reason.
   """
   @spec trade_history(
-          symbol  :: String.t(),
-          opts    :: [
-            {:timestamp,      non_neg_integer()},
-            {:since_tid,      non_neg_integer()},
-            {:limit_trades,   non_neg_integer()},
+          symbol :: String.t(),
+          opts :: [
+            {:timestamp, non_neg_integer()},
+            {:since_tid, non_neg_integer()},
+            {:limit_trades, non_neg_integer()},
             {:include_breaks, boolean()}
           ]
         ) :: {:ok, list(map)} | {:error, any}
   def trade_history(symbol, opts \\ []) do
     @trade_history_url
-      |> String.replace(":symbol", symbol)
-      |> get(query: opts)
-      |> Utils.handle_response()
+    |> String.replace(":symbol", symbol)
+    |> get(query: opts)
+    |> Utils.handle_response()
   end
-
 
   @doc """
   Retrieves the price feed for all trading pairs.
@@ -229,13 +229,13 @@ defmodule Geminex.API.Public do
   @spec funding_amount_report(
           opts :: [
             {:fromDate, non_neg_integer()},
-            {:toDate,   non_neg_integer()},
-            {:numRows,  non_neg_integer()}
+            {:toDate, non_neg_integer()},
+            {:numRows, non_neg_integer()}
           ]
         ) :: {:ok, binary} | {:error, any}
   def funding_amount_report(opts \\ []) do
     @funding_amount_report_url
-      |> get(query: opts)
-      |> Utils.handle_binary_response()
+    |> get(query: opts)
+    |> Utils.handle_binary_response()
   end
 end

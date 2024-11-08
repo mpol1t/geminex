@@ -32,10 +32,6 @@ jobs:
       - name: Install dependencies
         run: MIX_ENV=test mix deps.get
 
-      - name: Run tests
-        run: MIX_ENV=test mix test
-
-      # Cache PLT (Persistent Lookup Table) for Dialyzer
       - name: Cache Dialyzer PLT
         uses: actions/cache@v3
         with:
@@ -43,14 +39,20 @@ jobs:
           key: ${{ runner.os }}-dialyzer-${{ hashFiles('**/mix.lock') }}
           restore-keys: ${{ runner.os }}-dialyzer
 
-      # Build PLT if not cached
       - name: Build PLT
         run: mix dialyzer --plt
         if: steps.cache.outputs.cache-hit != 'true'
 
-      # Run Dialyzer for static analysis
       - name: Run Dialyzer
         run: mix dialyzer
 
-#      - name: Run Credo Linter
-#        run: mix credo
+      - name: Run Credo Linter
+        run: mix credo
+
+      - name: Run tests
+        run: MIX_ENV=test mix coveralls.json
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
