@@ -17,8 +17,8 @@ defmodule Geminex.MixProject do
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "test/utils"]
-  defp elixirc_paths(_), do: ["lib"]
+  defp elixirc_paths(:test), do: ["test/support", "lib"]
+  defp elixirc_paths(_),     do: ["lib"]
 
   # Run "mix help compile.app" to learn about applications.
   def application do
@@ -31,8 +31,10 @@ defmodule Geminex.MixProject do
   defp deps do
     [
       {:jason,        "~> 1.2"},
+      {:mint,         "~> 1.6"},
       {:tesla,        "~> 1.13.2"},
       {:stream_data,  "~> 1.1.1",   only: :test},
+      {:mox,          "~> 1.2",     only: :test},
       {:ex_doc,       "~> 0.34.2",  only: :dev,           runtime: false},
       {:dialyxir,     "~> 1.4",     only: [:dev, :test],  runtime: false},
       {:credo,        "~> 1.7",     only: [:dev, :test],  runtime: false},

@@ -2,7 +2,6 @@ defmodule Geminex.API.Public do
   @moduledoc """
   Public API endpoints for Gemini.
   """
-
   use Tesla, docs: false
 
   alias Geminex.Utils

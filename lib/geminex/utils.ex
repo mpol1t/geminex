@@ -6,7 +6,7 @@ defmodule Geminex.Utils do
   handle HTTP responses, and merge maps with keyword lists.
   """
 
-  @doc """
+    @doc """
   Conditionally adds a key-value pair to a map if the value is not **nil**.
 
   ## Parameters

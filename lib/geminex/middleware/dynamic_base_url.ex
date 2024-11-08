@@ -10,7 +10,7 @@ defmodule Geminex.Middleware.DynamicBaseUrl do
     Tesla.run(%Tesla.Env{ env | url: base_url() <> url}, next)
   end
 
-  defp base_url, do: Application.fetch_env!(:geminex, :environment) |> match_env()
+  def base_url, do: Application.fetch_env!(:geminex, :environment) |> match_env()
 
   defp match_env(:sandbox),     do: @sandbox_url
   defp match_env(:production),  do: @production_url

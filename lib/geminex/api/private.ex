@@ -78,7 +78,7 @@ defmodule Geminex.API.Private do
   @transactions_url           "/v1/transactions"
   @custody_account_fees_url   "/v1/custodyaccountfees"
   @deposit_addresses_url      "/v1/addresses/:network"
-  @new_deposit_address_url    "/v1/deposit/:network/:new_address"
+  @new_deposit_address_url    "/v1/deposit/:network/newAddress"
   @withdraw_crypto_funds_url  "/v1/withdraw/:currency"
   @gas_fee_estimation_url     "/v1/withdraw/:currency_code/feeEstimate"
   @internal_transfers_url     "/v1/account/transfer/:currency"
@@ -217,7 +217,9 @@ defmodule Geminex.API.Private do
     payload = %{"amount" => amount, "side" => side}
       |> Utils.merge_map_with_string_keys(opts)
 
-    post(@wrap_order_url |> String.replace(":symbol", symbol), payload, opts: [path: @wrap_order_url])
+    request_path = @wrap_order_url |> String.replace(":symbol", symbol)
+
+    post(request_path, payload, opts: [path: request_path])
       |> Utils.handle_response()
   end
 
@@ -640,7 +642,7 @@ defmodule Geminex.API.Private do
     payload = %{"clearing_id" => clearing_id}
       |> Utils.merge_map_with_string_keys(opts)
 
-    post(@cancel_clearing_order_url, payload)
+    post(@cancel_clearing_order_url, payload, opts: [path: @cancel_clearing_order_url])
       |> Utils.handle_response()
   end
 
@@ -804,7 +806,9 @@ defmodule Geminex.API.Private do
     payload = %{}
       |> Utils.merge_map_with_string_keys(opts)
 
-    post(@notional_balances_url |> String.replace(":currency", currency), payload, opts: [path: @notional_balances_url])
+    url = @notional_balances_url |> String.replace(":currency", currency)
+
+    post(url, payload, opts: [path: url])
       |> Utils.handle_response()
   end
 
@@ -890,7 +894,7 @@ defmodule Geminex.API.Private do
 
     url = @gas_fee_estimation_url |> String.replace(":currency_code", currency)
 
-    post(url, payload, opts: [path: @gas_fee_estimation_url])
+    post(url, payload, opts: [path: url])
       |> Utils.handle_response()
   end
 
@@ -926,7 +930,7 @@ defmodule Geminex.API.Private do
 
     url = @withdraw_crypto_funds_url |> String.replace(":currency", currency)
 
-    post(url, payload, opts: [path: @withdraw_crypto_funds_url])
+    post(url, payload, opts: [path: url])
       |> Utils.handle_response()
   end
   @doc """
@@ -958,7 +962,7 @@ defmodule Geminex.API.Private do
 
     url = @internal_transfers_url |> String.replace(":currency", currency)
 
-    post(url, payload, opts: [path: @internal_transfers_url])
+    post(url, payload, opts: [path: url])
       |> Utils.handle_response()
   end
 
@@ -1008,7 +1012,9 @@ defmodule Geminex.API.Private do
     payload = %{}
       |> Utils.merge_map_with_string_keys(opts)
 
-    post(@deposit_addresses_url |> String.replace(":network", network), payload, opts: [path: @deposit_addresses_url])
+    url = @deposit_addresses_url |> String.replace(":network", network)
+
+    post(url, payload, opts: [path: url])
       |> Utils.handle_response()
   end
 
@@ -1037,7 +1043,7 @@ defmodule Geminex.API.Private do
 
     url = @new_deposit_address_url |> String.replace(":network", network)
 
-    post(url, payload, opts: [path: @new_deposit_address_url])
+    post(url, payload, opts: [path: url])
       |> Utils.handle_response()
   end
 
@@ -1305,7 +1311,7 @@ defmodule Geminex.API.Private do
 
     url = @create_address_request_url |> String.replace(":network", network)
 
-    post(url, payload, opts: [path: @create_address_request_url])
+    post(url, payload, opts: [path: url])
       |> Utils.handle_response()
   end
 
@@ -1328,7 +1334,7 @@ defmodule Geminex.API.Private do
 
     url = @view_approved_addresses_url |> String.replace(":network", network)
 
-    post(url, payload, opts: [path: @view_approved_addresses_url])
+    post(url, payload, opts: [path: url])
       |> Utils.handle_response()
   end
 
@@ -1353,7 +1359,7 @@ defmodule Geminex.API.Private do
 
     url = @remove_addresses_from_approved_addresses_list_url |> String.replace(":network", network)
 
-    post(url, payload, opts: [path: @remove_addresses_from_approved_addresses_list_url])
+    post(url, payload, opts: [path: url])
       |> Utils.handle_response()
   end
 
