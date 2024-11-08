@@ -52,5 +52,5 @@ jobs:
       - name: Run Dialyzer
         run: mix dialyzer
 
-#      - name: Run Credo Linter
-#        run: mix credo
+      - name: Run Credo Linter
+        run: mix credo
