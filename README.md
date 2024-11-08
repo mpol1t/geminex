@@ -3,8 +3,8 @@
 [![License](https://img.shields.io/github/license/mpol1t/geminex.svg)](https://github.com/mpol1t/geminex/blob/main/LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-hexdocs-blue.svg)](https://hexdocs.pm/geminex)
 [![Build Status](https://github.com/mpol1t/geminex/actions/workflows/elixir.yml/badge.svg)](https://github.com/mpol1t/geminex/actions)
-[![Downloads](https://img.shields.io/hexpm/dt/geminex.svg)](https://hex.pm/packages/geminex)
-[![Last Commit](https://img.shields.io/github/last-commit/mpol1t/geminex.svg)](https://github.com/mpol1t/geminex/commits/main)
+<!--[![Downloads](https://img.shields.io/hexpm/dt/geminex.svg)](https://hex.pm/packages/geminex)-->
+<!--[![Last Commit](https://img.shields.io/github/last-commit/mpol1t/geminex.svg)](https://github.com/mpol1t/geminex/commits/main)-->
 [![Elixir Version](https://img.shields.io/badge/elixir-~%3E%201.16-purple.svg)](https://elixir-lang.org/)
 
 # Geminex
