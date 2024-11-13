@@ -113,16 +113,16 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol** (*String.t()*): The trading pair symbol (e.g., **"btcusd"**).
-    - **amount** (*String.t()*): The amount to purchase as a string.
-    - **price** (*String.t()*): The limit price per unit as a string.
-    - **side** (*String.t()*): Order side, either **"buy"** or **"sell"**.
-    - **type** (*String.t()*): Order type, e.g., **"exchange limit"** or **"exchange stop limit"**.
-    - **opts** (*keyword list, optional*): Optional settings for the order.
-      - **:client_order_id** (*String.t()*): A custom client ID for the order.
-      - **:stop_price** (*String.t()*): The stop price for stop-limit orders.
-      - **:options** (*list(String.t())*): List of order execution options (e.g., **["maker-or-cancel"]**).
-      - **:account** (*String.t()*): Specifies the sub-account (required for master API keys).
+    - **symbol** : The trading pair symbol (e.g., **"btcusd"**).
+    - **amount** : The amount to purchase as a string.
+    - **price** : The limit price per unit as a string.
+    - **side** : Order side, either **"buy"** or **"sell"**.
+    - **type** : Order type, e.g., **"exchange limit"** or **"exchange stop limit"**.
+    - **opts** : Optional settings for the order.
+      - **:client_order_id** : A custom client ID for the order.
+      - **:stop_price** : The stop price for stop-limit orders.
+      - **:options** : List of order execution options (e.g., **["maker-or-cancel"]**).
+      - **:account** : Specifies the sub-account (required for master API keys).
 
   ## Returns
 
@@ -162,9 +162,9 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **order_id** (*non_neg_integer()*): The ID of the order to cancel.
-    - **opts** (*keyword list, optional*): A list of additional options.
-      - **:account** (*String.t()*): Specifies the name of the account within the subaccount group. This is required if using a Master API key.
+    - **order_id** : The ID of the order to cancel.
+    - **opts** : A list of additional options.
+      - **:account** : Specifies the name of the account within the subaccount group. This is required if using a Master API key.
 
   ## Behavior
 
@@ -193,12 +193,12 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol** (*String.t()*): The trading pair symbol for the asset to be wrapped or unwrapped (e.g., **"GUSDUSD"**).
-    - **amount** (*String.t()*): The amount to be wrapped or unwrapped, specified as a string.
-    - **side** (*String.t()*): The direction of the transaction, either **"buy"** (to wrap) or **"sell"** (to unwrap).
-    - **opts** (*keyword list, optional*): Additional options for the transaction.
-      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
-      - **:client_order_id** (*String.t()*): A custom client ID for tracking the order.
+    - **symbol** : The trading pair symbol for the asset to be wrapped or unwrapped (e.g., **"GUSDUSD"**).
+    - **amount** : The amount to be wrapped or unwrapped, specified as a string.
+    - **side** : The direction of the transaction, either **"buy"** (to wrap) or **"sell"** (to unwrap).
+    - **opts** : Additional options for the transaction.
+      - **:account** : Specifies the sub-account, required if using a master API key.
+      - **:client_order_id** : A custom client ID for tracking the order.
 
   ## Returns
 
@@ -232,8 +232,8 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account, required if using a master API key.
   """
   @spec cancel_all_session_orders(opts :: [account: String.t()]) :: {:ok, map} | {:error, any}
   def cancel_all_session_orders(opts \\ []) do
@@ -252,8 +252,8 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account, required if using a master API key.
   """
   @spec cancel_all_active_orders(opts :: [account: String.t()]) :: {:ok, map} | {:error, any}
   def cancel_all_active_orders(opts \\ []) do
@@ -270,11 +270,11 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Options for specifying order details.
-      - **:order_id** (*non_neg_integer()*): The order ID to retrieve status for. Cannot be used with **client_order_id**.
-      - **:client_order_id** (*String.t()*): The client-specified order ID used during order placement. Cannot be used with **order_id**.
-      - **:include_trades** (*boolean()*): If **true**, includes trade details for all fills associated with the order.
-      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
+    - **opts** : Options for specifying order details.
+      - **:order_id** : The order ID to retrieve status for. Cannot be used with **client_order_id**.
+      - **:client_order_id** : The client-specified order ID used during order placement. Cannot be used with **order_id**.
+      - **:include_trades** : If **true**, includes trade details for all fills associated with the order.
+      - **:account** : Specifies the sub-account, required if using a master API key.
   """
   @spec order_status(
           opts :: [
@@ -298,8 +298,8 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account, required if using a master API key.
   """
   @spec active_orders(opts :: [account: String.t()]) :: {:ok, list(map)} | {:error, any}
   def active_orders(opts \\ []) do
@@ -316,11 +316,11 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Options to customize the trade retrieval.
-      - **:symbol** (*String.t()*): The symbol to retrieve trades for (e.g., "btcusd").
-      - **:limit_trades** (*non_neg_integer()*): Maximum number of trades to return (default 50, max 500).
-      - **:timestamp** (*non_neg_integer()*): Only return trades on or after this timestamp.
-      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
+    - **opts** : Options to customize the trade retrieval.
+      - **:symbol** : The symbol to retrieve trades for (e.g., "btcusd").
+      - **:limit_trades** : Maximum number of trades to return (default 50, max 500).
+      - **:timestamp** : Only return trades on or after this timestamp.
+      - **:account** : Specifies the sub-account, required if using a master API key.
   """
   @spec past_trades(
           opts :: [
@@ -344,11 +344,11 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Options to customize the order retrieval.
-      - **:symbol** (*String.t()*): The symbol to retrieve orders for (e.g., "btcusd").
-      - **:limit_orders** (*non_neg_integer()*): Maximum number of orders to return (default 50, max 500).
-      - **:timestamp** (*non_neg_integer()*): Only return orders on or after this timestamp.
-      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
+    - **opts** : Options to customize the order retrieval.
+      - **:symbol** : The symbol to retrieve orders for (e.g., "btcusd").
+      - **:limit_orders** : Maximum number of orders to return (default 50, max 500).
+      - **:timestamp** : Only return orders on or after this timestamp.
+      - **:account** : Specifies the sub-account, required if using a master API key.
   """
   @spec orders_history(
           opts :: [
@@ -372,9 +372,9 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:symbol** (*String.t()*): The participating symbol for fee promotions (e.g., "btcusd").
-      - **:account** (*String.t()*): Specifies the sub-account, required if using a master API key.
+    - **opts** : Additional options.
+      - **:symbol** : The participating symbol for fee promotions (e.g., "btcusd").
+      - **:account** : Specifies the sub-account, required if using a master API key.
   """
   @spec notional_volume(
           opts :: [
@@ -396,8 +396,8 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account. This is required if using a master API key.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account. This is required if using a master API key.
   """
   @spec trade_volume(opts :: [account: String.t()]) :: {:ok, list(map)} | {:error, any}
   def trade_volume(opts \\ []) do
@@ -434,8 +434,8 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account. This is required if using a master API key.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account. This is required if using a master API key.
   """
   @spec open_positions(opts :: [account: String.t()]) :: {:ok, list(map)} | {:error, any}
   def open_positions(opts \\ []) do
@@ -452,9 +452,9 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol** (*String.t()*): The trading pair symbol (e.g., **"BTC-GUSD-PERP"**).
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account. This is required if using a master API key.
+    - **symbol** : The trading pair symbol (e.g., **"BTC-GUSD-PERP"**).
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account. This is required if using a master API key.
   """
   @spec account_margin(symbol :: String.t(), opts :: [account: String.t()]) ::
           {:ok, map} | {:error, any}
@@ -472,7 +472,7 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol** (*String.t()*): The trading pair symbol (e.g., **"BTCGUSDPERP"**).
+    - **symbol** : The trading pair symbol (e.g., **"BTCGUSDPERP"**).
   """
   @spec risk_stats(symbol :: String.t()) :: {:ok, map} | {:error, any}
   def risk_stats(symbol) do
@@ -485,10 +485,10 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Options to customize the funding payment query.
-      - **:since** (*non_neg_integer()*): The starting timestamp for the funding payments.
-      - **:to** (*non_neg_integer()*): The ending timestamp for the funding payments.
-      - **:account** (*String.t()*): Specifies the sub-account. This is required if using a master API key.
+    - **opts** : Options to customize the funding payment query.
+      - **:since** : The starting timestamp for the funding payments.
+      - **:to** : The ending timestamp for the funding payments.
+      - **:account** : Specifies the sub-account. This is required if using a master API key.
   """
   @spec funding_payment(
           opts :: [
@@ -515,10 +515,10 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Options to customize the data retrieval.
-      - **:from_date** (*String.t()*): Start date for the records in **YYYY-MM-DD** format.
-      - **:to_date** (*String.t()*): End date for the records in **YYYY-MM-DD** format.
-      - **:num_rows** (*non_neg_integer()*): Maximum number of rows to retrieve (default 8760).
+    - **opts** : Options to customize the data retrieval.
+      - **:from_date** : Start date for the records in **YYYY-MM-DD** format.
+      - **:to_date** : End date for the records in **YYYY-MM-DD** format.
+      - **:num_rows** : Maximum number of rows to retrieve (default 8760).
   """
   @spec funding_payment_report_file(
           opts :: [
@@ -540,10 +540,10 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Options to customize the data retrieval.
-      - **:from_date** (*String.t()*): Start date for the records in **YYYY-MM-DD** format.
-      - **:to_date** (*String.t()*): End date for the records in **YYYY-MM-DD** format.
-      - **:num_rows** (*non_neg_integer()*): Maximum number of rows to retrieve (default 8760).
+    - **opts** : Options to customize the data retrieval.
+      - **:from_date** : Start date for the records in **YYYY-MM-DD** format.
+      - **:to_date** : End date for the records in **YYYY-MM-DD** format.
+      - **:num_rows** : Maximum number of rows to retrieve (default 8760).
   """
   @spec funding_payment_report_json(
           opts :: [
@@ -565,14 +565,14 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol** (*String.t()*): The trading pair symbol for the order (e.g., **"btcusd"**).
-    - **amount** (*String.t()*): The amount to purchase as a string.
-    - **price** (*String.t()*): The price per unit as a string.
-    - **side** (*String.t()*): **"buy"** or **"sell"**.
-    - **opts** (*keyword list, optional*): Additional options for the clearing order.
-      - **:counterparty_id** (*String.t()*): ID of the counterparty for this trade.
-      - **:expires_in_hrs** (*non_neg_integer()*): Number of hours before the trade expires.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **symbol** : The trading pair symbol for the order (e.g., **"btcusd"**).
+    - **amount** : The amount to purchase as a string.
+    - **price** : The price per unit as a string.
+    - **side** : **"buy"** or **"sell"**.
+    - **opts** : Additional options for the clearing order.
+      - **:counterparty_id** : ID of the counterparty for this trade.
+      - **:expires_in_hrs** : Number of hours before the trade expires.
+      - **:account** : Specifies the sub-account.
   """
   @spec new_clearing_order(
           symbol :: String.t(),
@@ -604,15 +604,15 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **symbol** (*String.t()*): The trading pair symbol.
-    - **amount** (*String.t()*): The amount to purchase as a string.
-    - **price** (*String.t()*): The price per unit as a string.
-    - **side** (*String.t()*): **"buy"** or **"sell"**.
-    - **source_counterparty_id** (*String.t()*): The counterparty initiating the trade.
-    - **target_counterparty_id** (*String.t()*): The target counterparty.
-    - **opts** (*keyword list, optional*): Additional options for the broker order.
-      - **:expires_in_hrs** (*non_neg_integer()*): Number of hours before the trade expires.
-      - **:account** (*String.t()*): Specifies the broker sub-account.
+    - **symbol** : The trading pair symbol.
+    - **amount** : The amount to purchase as a string.
+    - **price** : The price per unit as a string.
+    - **side** : **"buy"** or **"sell"**.
+    - **source_counterparty_id** : The counterparty initiating the trade.
+    - **target_counterparty_id** : The target counterparty.
+    - **opts** : Additional options for the broker order.
+      - **:expires_in_hrs** : Number of hours before the trade expires.
+      - **:account** : Specifies the broker sub-account.
   """
   @spec new_broker_order(
           symbol :: String.t(),
@@ -655,8 +655,8 @@ defmodule Geminex.API.Private do
 
   ## Parameters
     - **clearing_id**: A unique identifier for the clearing order.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec clearing_order_status(clearing_id :: String.t(), opts :: [account: String.t()]) ::
           {:ok, map} | {:error, any}
@@ -675,8 +675,8 @@ defmodule Geminex.API.Private do
   ## Parameters
 
     - **clearing_id**: The unique identifier of the clearing order.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec cancel_clearing_order(clearing_id :: String.t(), opts :: [account: String.t()]) ::
           {:ok, map} | {:error, any}
@@ -699,8 +699,8 @@ defmodule Geminex.API.Private do
     - **amount**: The amount to purchase as a string.
     - **price**: The price per unit as a string.
     - **side**: "buy" or "sell".
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec confirm_clearing_order(
           clearing_id :: String.t(),
@@ -730,16 +730,16 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **side** (*String.t()*): "buy" or "sell" (required).
-    - **opts** (*keyword list, optional*): Filter options for the clearing orders.
-      - **:symbol** (*String.t()*): Trading pair symbol.
-      - **:counterparty** (*String.t()*): Counterparty ID or alias.
-      - **:expiration_start** (*non_neg_integer()*): Start timestamp for expiration filter.
-      - **:expiration_end** (*non_neg_integer()*): End timestamp for expiration filter.
-      - **:submission_start** (*non_neg_integer()*): Start timestamp for submission filter.
-      - **:submission_end** (*non_neg_integer()*): End timestamp for submission filter.
-      - **:funded** (*boolean()*): Whether the order is funded.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **side** : "buy" or "sell" (required).
+    - **opts** : Filter options for the clearing orders.
+      - **:symbol** : Trading pair symbol.
+      - **:counterparty** : Counterparty ID or alias.
+      - **:expiration_start** : Start timestamp for expiration filter.
+      - **:expiration_end** : End timestamp for expiration filter.
+      - **:submission_start** : Start timestamp for submission filter.
+      - **:submission_end** : End timestamp for submission filter.
+      - **:funded** : Whether the order is funded.
+      - **:account** : Specifies the sub-account.
   """
   @spec clearing_order_list(
           side :: String.t(),
@@ -768,14 +768,14 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Filter options for broker clearing orders.
-      - **:symbol** (*String.t()*): Trading pair symbol.
-      - **:expiration_start** (*non_neg_integer()*): Start timestamp for expiration filter.
-      - **:expiration_end** (*non_neg_integer()*): End timestamp for expiration filter.
-      - **:submission_start** (*non_neg_integer()*): Start timestamp for submission filter.
-      - **:submission_end** (*non_neg_integer()*): End timestamp for submission filter.
-      - **:funded** (*boolean()*): Whether the order is funded.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Filter options for broker clearing orders.
+      - **:symbol** : Trading pair symbol.
+      - **:expiration_start** : Start timestamp for expiration filter.
+      - **:expiration_end** : End timestamp for expiration filter.
+      - **:submission_start** : Start timestamp for submission filter.
+      - **:submission_end** : End timestamp for submission filter.
+      - **:funded** : Whether the order is funded.
+      - **:account** : Specifies the sub-account.
   """
   @spec clearing_broker_list(
           opts :: [
@@ -802,10 +802,10 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Filter options for clearing trades.
-      - **:timestamp_nanos** (*non_neg_integer()*): Only return trades on or after this timestamp in nanoseconds.
-      - **:limit** (*non_neg_integer()*): The maximum number of trades to return.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Filter options for clearing trades.
+      - **:timestamp_nanos** : Only return trades on or after this timestamp in nanoseconds.
+      - **:limit** : The maximum number of trades to return.
+      - **:account** : Specifies the sub-account.
   """
   @spec clearing_trades(
           opts :: [
@@ -828,8 +828,8 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec available_balances(opts :: [account: String.t()]) :: {:ok, list(map)} | {:error, any}
   def available_balances(opts \\ []) do
@@ -846,9 +846,9 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **currency** (*String.t()*): Three-letter fiat currency code for notional values (e.g., "usd").
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **currency** : Three-letter fiat currency code for notional values (e.g., "usd").
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec notional_balances(currency :: String.t(), opts :: [account: String.t()]) ::
           {:ok, list(map)} | {:error, any}
@@ -868,12 +868,12 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Options for filtering transfers.
-      - **:currency** (*String.t()*): Currency code to filter transfers.
-      - **:timestamp** (*non_neg_integer()*): Only return transfers on or after this timestamp.
-      - **:limit_transfers** (*non_neg_integer()*): Maximum number of transfers to return.
-      - **:show_completed_deposit_advances** (*boolean()*): Whether to show completed deposit advances.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Options for filtering transfers.
+      - **:currency** : Currency code to filter transfers.
+      - **:timestamp** : Only return transfers on or after this timestamp.
+      - **:limit_transfers** : Maximum number of transfers to return.
+      - **:show_completed_deposit_advances** : Whether to show completed deposit advances.
+      - **:account** : Specifies the sub-account.
   """
   @spec transfers(
           opts :: [
@@ -898,11 +898,11 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Options for filtering transactions.
-      - **:timestamp_nanos** (*non_neg_integer()*): Only return transactions on or after this timestamp in nanoseconds.
-      - **:limit** (*non_neg_integer()*): Maximum number of transactions to return (default is 100).
-      - **:continuation_token** (*String.t()*): Token for pagination in subsequent requests.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Options for filtering transactions.
+      - **:timestamp_nanos** : Only return transactions on or after this timestamp in nanoseconds.
+      - **:limit** : Maximum number of transactions to return (default is 100).
+      - **:continuation_token** : Token for pagination in subsequent requests.
+      - **:account** : Specifies the sub-account.
   """
   @spec transactions(
           opts :: [
@@ -926,11 +926,11 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **currency** (*String.t()*): The cryptocurrency code (e.g., "eth").
-    - **address** (*String.t()*): Destination cryptocurrency address.
-    - **amount** (*String.t()*): The amount to withdraw.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **currency** : The cryptocurrency code (e.g., "eth").
+    - **address** : Destination cryptocurrency address.
+    - **amount** : The amount to withdraw.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec estimate_gas_fee(
           currency :: String.t(),
@@ -957,13 +957,13 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **currency** (*String.t()*): The cryptocurrency code (e.g., "btc").
-    - **address** (*String.t()*): The destination cryptocurrency address.
-    - **amount** (*String.t()*): The amount to withdraw.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:client_transfer_id** (*String.t()*): Unique identifier for the withdrawal.
-      - **:memo** (*String.t()*): Memo for addresses requiring it.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **currency** : The cryptocurrency code (e.g., "btc").
+    - **address** : The destination cryptocurrency address.
+    - **amount** : The amount to withdraw.
+    - **opts** : Additional options.
+      - **:client_transfer_id** : Unique identifier for the withdrawal.
+      - **:memo** : Memo for addresses requiring it.
+      - **:account** : Specifies the sub-account.
   """
   @spec withdraw_crypto_funds(
           currency :: String.t(),
@@ -994,12 +994,12 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **currency** (*String.t()*): Currency code (e.g., "btc").
-    - **source_account** (*String.t()*): The account to transfer funds from.
-    - **target_account** (*String.t()*): The account to transfer funds to.
-    - **amount** (*String.t()*): The amount to transfer.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:client_transfer_id** (*String.t()*): Unique identifier for the transfer.
+    - **currency** : Currency code (e.g., "btc").
+    - **source_account** : The account to transfer funds from.
+    - **target_account** : The account to transfer funds to.
+    - **amount** : The amount to transfer.
+    - **opts** : Additional options.
+      - **:client_transfer_id** : Unique identifier for the transfer.
   """
   @spec execute_internal_transfer(
           currency :: String.t(),
@@ -1028,10 +1028,10 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Options for filtering custody fees.
-      - **:timestamp** (*non_neg_integer()*): Only return Custody fee records on or after this timestamp.
-      - **:limit_transfers** (*non_neg_integer()*): The maximum number of Custody fee records to return.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Options for filtering custody fees.
+      - **:timestamp** : Only return Custody fee records on or after this timestamp.
+      - **:limit_transfers** : The maximum number of Custody fee records to return.
+      - **:account** : Specifies the sub-account.
   """
   @spec custody_account_fees(
           opts :: [
@@ -1054,10 +1054,10 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **network** (*String.t()*): Cryptocurrency network (e.g., "bitcoin", "ethereum").
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:timestamp** (*non_neg_integer()*): Only return addresses created on or after this timestamp.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **network** : Cryptocurrency network (e.g., "bitcoin", "ethereum").
+    - **opts** : Additional options.
+      - **:timestamp** : Only return addresses created on or after this timestamp.
+      - **:account** : Specifies the sub-account.
   """
   @spec deposit_addresses(
           network :: String.t(),
@@ -1082,11 +1082,11 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **network** (*String.t()*): Cryptocurrency network (e.g., "bitcoin", "litecoin").
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:label** (*String.t()*): Label for the deposit address.
-      - **:legacy** (*boolean()*): Whether to generate a legacy P2SH-P2PKH litecoin address.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **network** : Cryptocurrency network (e.g., "bitcoin", "litecoin").
+    - **opts** : Additional options.
+      - **:label** : Label for the deposit address.
+      - **:legacy** : Whether to generate a legacy P2SH-P2PKH litecoin address.
+      - **:account** : Specifies the sub-account.
   """
   @spec new_deposit_address(
           network :: String.t(),
@@ -1112,12 +1112,12 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **account_number** (*String.t()*): Bank account number.
-    - **routing** (*String.t()*): Routing number.
-    - **type** (*String.t()*): Type of bank account, either **"checking"** or **"savings"**.
-    - **name** (*String.t()*): Name on the bank account.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **account_number** : Bank account number.
+    - **routing** : Routing number.
+    - **type** : Type of bank account, either **"checking"** or **"savings"**.
+    - **name** : Name on the bank account.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec add_bank(
           account_number :: String.t(),
@@ -1145,14 +1145,14 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **swift_code** (*String.t()*): SWIFT code.
-    - **account_number** (*String.t()*): Bank account number.
-    - **type** (*String.t()*): Type of bank account, either "checking" or "savings".
-    - **name** (*String.t()*): Name on the bank account.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:institution_number** (*String.t()*): Institution number of the account.
-      - **:branch_number** (*String.t()*): Branch number of the account.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **swift_code** : SWIFT code.
+    - **account_number** : Bank account number.
+    - **type** : Type of bank account, either "checking" or "savings".
+    - **name** : Name on the bank account.
+    - **opts** : Additional options.
+      - **:institution_number** : Institution number of the account.
+      - **:branch_number** : Branch number of the account.
+      - **:account** : Specifies the sub-account.
   """
   @spec add_bank_cad(
           swift_code :: String.t(),
@@ -1184,8 +1184,8 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec payment_methods(opts :: [account: String.t()]) :: {:ok, map} | {:error, any}
   def payment_methods(opts \\ []) do
@@ -1202,8 +1202,8 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec staking_balances(opts :: [account: String.t()]) :: {:ok, list(map)} | {:error, any}
   def staking_balances(opts \\ []) do
@@ -1229,12 +1229,12 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **since** (*String.t()*): Start date in ISO datetime format.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:until** (*String.t()*): End date in ISO datetime format. Defaults to the current time.
-      - **:provider_id** (*String.t()*): ID of the provider.
-      - **:currency** (*String.t()*): Currency code, e.g., "ETH".
-      - **:account** (*String.t()*): Specifies the sub-account (required for Master API keys).
+    - **since** : Start date in ISO datetime format.
+    - **opts** : Additional options.
+      - **:until** : End date in ISO datetime format. Defaults to the current time.
+      - **:provider_id** : ID of the provider.
+      - **:currency** : Currency code, e.g., "ETH".
+      - **:account** : Specifies the sub-account (required for Master API keys).
   """
   @spec staking_rewards(
           since :: String.t(),
@@ -1259,15 +1259,15 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Options for filtering staking history.
-      - **:since** (*String.t()*): Start date in ISO datetime format.
-      - **:until** (*String.t()*): End date in ISO datetime format, defaults to the current time.
-      - **:limit** (*non_neg_integer()*): Max number of transactions to return.
-      - **:provider_id** (*String.t()*): ID of the provider.
-      - **:currency** (*String.t()*): Currency code, e.g., "ETH".
-      - **:interest_only** (*boolean()*): Set to true to only return daily interest transactions.
-      - **:sort_asc** (*boolean()*): Set to true to sort transactions in ascending order.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Options for filtering staking history.
+      - **:since** : Start date in ISO datetime format.
+      - **:until** : End date in ISO datetime format, defaults to the current time.
+      - **:limit** : Max number of transactions to return.
+      - **:provider_id** : ID of the provider.
+      - **:currency** : Currency code, e.g., "ETH".
+      - **:interest_only** : Set to true to only return daily interest transactions.
+      - **:sort_asc** : Set to true to sort transactions in ascending order.
+      - **:account** : Specifies the sub-account.
   """
   @spec staking_history(
           opts :: [
@@ -1295,11 +1295,11 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **provider_id** (*String.t()*): The provider ID in UUID4 format.
-    - **currency** (*String.t()*): The currency to deposit, e.g., "ETH".
-    - **amount** (*String.t()*): Amount of currency to deposit.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **provider_id** : The provider ID in UUID4 format.
+    - **currency** : The currency to deposit, e.g., "ETH".
+    - **amount** : Amount of currency to deposit.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec stake(
           provider_id :: String.t(),
@@ -1325,11 +1325,11 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **provider_id** (*String.t()*): The provider ID in UUID4 format.
-    - **currency** (*String.t()*): The currency to withdraw, e.g., "ETH".
-    - **amount** (*String.t()*): Amount of currency to withdraw.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **provider_id** : The provider ID in UUID4 format.
+    - **currency** : The currency to withdraw, e.g., "ETH".
+    - **amount** : Amount of currency to withdraw.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec unstake(
           provider_id :: String.t(),
@@ -1355,12 +1355,12 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **network** (*String.t()*): The network for the address, e.g., "ethereum", "bitcoin".
-    - **address** (*String.t()*): The address to add to the approved address list.
-    - **label** (*String.t()*): The label for the approved address.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
-      - **:memo** (*String.t()*): Memo for specific address formats, e.g., Cosmos.
+    - **network** : The network for the address, e.g., "ethereum", "bitcoin".
+    - **address** : The address to add to the approved address list.
+    - **label** : The label for the approved address.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
+      - **:memo** : Memo for specific address formats, e.g., Cosmos.
   """
   @spec create_address_request(
           network :: String.t(),
@@ -1390,9 +1390,9 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **network** (*String.t()*): The network to view the approved address list for, e.g., "ethereum".
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **network** : The network to view the approved address list for, e.g., "ethereum".
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec view_approved_addresses(
           network :: String.t(),
@@ -1414,10 +1414,10 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **network** (*String.t()*): The network for the address, e.g., "ethereum".
-    - **address** (*String.t()*): The address to remove from the approved address list.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **network** : The network for the address, e.g., "ethereum".
+    - **address** : The address to remove from the approved address list.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec remove_address(
           network :: String.t(),
@@ -1441,8 +1441,8 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:account** (*String.t()*): Specifies the sub-account.
+    - **opts** : Additional options.
+      - **:account** : Specifies the sub-account.
   """
   @spec account_detail(opts :: [account: String.t()]) :: {:ok, map} | {:error, any}
   def account_detail(opts \\ []) do
@@ -1459,9 +1459,9 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **name** (*String.t()*): A unique name for the new account.
-    - **opts** (*keyword list, optional*): Additional options.
-      - **:type** (*String.t()*): Type of account. Accepts **"exchange"** or **"custody"**. Defaults to **"exchange"**.
+    - **name** : A unique name for the new account.
+    - **opts** : Additional options.
+      - **:type** : Type of account. Accepts **"exchange"** or **"custody"**. Defaults to **"exchange"**.
   """
   @spec create_account(name :: String.t(), opts :: [type: String.t()]) ::
           {:ok, map} | {:error, any}
@@ -1479,10 +1479,10 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **account** (*String.t()*): Short name of the existing account.
-    - **opts** (*keyword list, optional*): Additional options for renaming the account.
-      - **:new_name** (*String.t()*): New unique name for the account.
-      - **:new_account** (*String.t()*): New unique short name for the account.
+    - **account** : Short name of the existing account.
+    - **opts** : Additional options for renaming the account.
+      - **:new_name** : New unique name for the account.
+      - **:new_account** : New unique short name for the account.
   """
   @spec rename_account(
           account :: String.t(),
@@ -1505,9 +1505,9 @@ defmodule Geminex.API.Private do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): Options for filtering the account list.
-      - **:limit_accounts** (*non_neg_integer()*): Max number of accounts to return. Default is 500.
-      - **:timestamp** (*non_neg_integer()*): Only return accounts created on or before this timestamp.
+    - **opts** : Options for filtering the account list.
+      - **:limit_accounts** : Max number of accounts to return. Default is 500.
+      - **:timestamp** : Only return accounts created on or before this timestamp.
   """
   @spec list_accounts(
           opts :: [

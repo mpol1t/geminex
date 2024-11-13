@@ -134,10 +134,10 @@ defmodule Geminex.API.Public do
 
   ## Parameters
 
-    - **symbol** (*String.t()*): The trading pair symbol (e.g., **"btcusd"**).
-    - **opts** (*keyword list, optional*): A list of query parameters to customize the order book data.
-      - **:limit_bids** (*non_neg_integer()*): The maximum number of bid orders to retrieve.
-      - **:limit_asks** (*non_neg_integer()*): The maximum number of ask orders to retrieve.
+    - **symbol** : The trading pair symbol (e.g., **"btcusd"**).
+    - **opts** : A list of query parameters to customize the order book data.
+      - **:limit_bids** : The maximum number of bid orders to retrieve.
+      - **:limit_asks** : The maximum number of ask orders to retrieve.
 
   ## Returns
 
@@ -163,12 +163,12 @@ defmodule Geminex.API.Public do
 
   ## Parameters
 
-    - **symbol** (*String.t()*): The trading pair symbol (e.g., **"btcusd"**).
-    - **opts** (*keyword list, optional*): A list of options to customize the query.
-      - **:timestamp** (*non_neg_integer()*): The starting timestamp for the trade history.
-      - **:since_tid** (*non_neg_integer()*): The trade ID from which to start fetching trades.
-      - **:limit_trades** (*non_neg_integer()*): The maximum number of trades to retrieve.
-      - **:include_breaks** (*boolean()*): Whether to include breaks between trades. Defaults to **false**.
+    - **symbol** : The trading pair symbol (e.g., **"btcusd"**).
+    - **opts** : A list of options to customize the query.
+      - **:timestamp** : The starting timestamp for the trade history.
+      - **:since_tid** : The trade ID from which to start fetching trades.
+      - **:limit_trades** : The maximum number of trades to retrieve.
+      - **:include_breaks** : Whether to include breaks between trades. Defaults to **false**.
 
   ## Returns
 
@@ -216,10 +216,10 @@ defmodule Geminex.API.Public do
 
   ## Parameters
 
-    - **opts** (*keyword list, optional*): A list of query parameters to customize the report.
-      - **:fromDate** (*non_neg_integer()*): The start date for the report, represented as a Unix timestamp.
-      - **:toDate** (*non_neg_integer()*): The end date for the report, represented as a Unix timestamp.
-      - **:numRows** (*non_neg_integer()*): The maximum number of rows to retrieve in the report.
+    - **opts** : A list of query parameters to customize the report.
+      - **:fromDate** : The start date for the report, represented as a Unix timestamp.
+      - **:toDate** : The end date for the report, represented as a Unix timestamp.
+      - **:numRows** : The maximum number of rows to retrieve in the report.
 
   ## Returns
 
