@@ -105,6 +105,39 @@ case Geminex.API.Public.symbols() do
 end
 ```
 
+### Adapter Configuration
+
+By default, `Geminex` uses the `Mint` adapter with Tesla. However, users are free to choose and configure any adapter supported by Tesla.
+
+#### Default Configuration
+
+The default configuration uses the `Mint` adapter:
+
+```elixir
+import Config
+
+config :tesla, adapter: Tesla.Adapter.Mint
+```
+
+#### Customizing the Adapter
+
+To customize the `Mint` adapter settings or use a different adapter, override the Tesla configuration in your `config.exs` file:
+
+```elixir
+# Customizing Mint
+config :tesla,
+  adapter: {Tesla.Adapter.Mint, timeout: 10_000, recv_timeout: 15_000}
+
+# Using Hackney
+config :tesla,
+  adapter: {Tesla.Adapter.Hackney, pool_timeout: 5_000, recv_timeout: 10_000}
+```
+
+#### Notes
+
+- Custom settings apply globally and may affect other libraries using Tesla.
+- Refer to the [Tesla documentation](https://hexdocs.pm/tesla/readme.html#adapters) for a list of supported adapters and configuration options.
+
 ### Running Tests
 
 To run tests:
