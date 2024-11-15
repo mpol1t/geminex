@@ -17,6 +17,7 @@ Geminex is an Elixir client for the [Gemini API](https://docs.gemini.com/), offe
     - [Public API](#public-api)
     - [Private API](#private-api)
 - [Error Handling](#error-handling)
+- [Adapter Configuration](#adapter-configuration)
 - [Running Tests](#running-tests)
 - [Running Dialyzer](#running-dialyzer)
 - [Contributing](#contributing)
