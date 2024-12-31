@@ -44,7 +44,7 @@ defmodule Geminex.MixProject do
       {:tesla, "~> 1.13.2"},
       {:stream_data, "~> 1.1.1", only: :test},
       {:mox, "~> 1.2", only: :test},
-      {:ex_doc, "~> 0.35.0", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.36.1", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:styler, "~> 1.2.0", only: [:dev, :test], runtime: false},
