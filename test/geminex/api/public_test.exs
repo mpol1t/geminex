@@ -140,28 +140,23 @@ defmodule Geminex.API.PublicTest do
     end
   end
 
-  describe "current_order_book/2" do
-    property "retrieves order book data for a symbol with optional params" do
-      check all(
-              symbol <- string(:alphanumeric, min_length: 3, max_length: 6),
-              opts <-
-                StreamData.map_of(
-                  StreamData.one_of([
-                    :limit_bids,
-                    :limit_asks
-                  ]),
-                  non_negative_integer(),
-                  max_length: 2
-                ),
-              max_runs: @max_runs
-            ) do
-        query = Enum.into(opts, [])
+  property "retrieves order book data for a symbol with optional params" do
+    check all(
+            symbol <- string(:alphanumeric, min_length: 3, max_length: 6),
+            opts_list <-
+              list_of(
+                tuple({member_of([:limit_bids, :limit_asks]), non_negative_integer()}),
+                max_length: 2
+              ),
+            max_runs: @max_runs
+          ) do
+      # Remove duplicates if any (later ones override earlier ones)
+      opts = opts_list |> Enum.uniq_by(fn {k, _v} -> k end)
 
-        expect_tesla_call(times: 1, returns: %Tesla.Env{status: 200})
+      expect_tesla_call(times: 1, returns: %Tesla.Env{status: 200})
 
-        Public.current_order_book(symbol, query)
-        assert_expected_call("/v1/book/#{symbol}", 200, query)
-      end
+      Public.current_order_book(symbol, opts)
+      assert_expected_call("/v1/book/#{symbol}", 200, opts)
     end
   end
 
