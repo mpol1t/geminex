@@ -47,7 +47,7 @@ defmodule Geminex.MixProject do
       {:ex_doc, "~> 0.38.1", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:styler, "~> 1.4.0", only: [:dev, :test], runtime: false},
+      {:styler, "~> 1.5.1", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.18.3", only: [:test], runtime: false}
     ]
   end
