@@ -41,7 +41,7 @@ defmodule Geminex.MixProject do
     [
       {:jason, "~> 1.2"},
       {:mint, "~> 1.6"},
-      {:tesla, "~> 1.15.0"},
+      {:tesla, "~> 1.16.0"},
       {:stream_data, "~> 1.2.0", only: :test},
       {:mox, "~> 1.2", only: :test},
       {:ex_doc, "~> 0.39.1", only: :dev, runtime: false},
