@@ -1,10 +1,11 @@
 defmodule Geminex.MixProject do
   use Mix.Project
+  @version "0.1.1"
 
   def project do
     [
       app: :geminex,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -13,8 +14,12 @@ defmodule Geminex.MixProject do
         "Geminex is an Elixir client for Gemini's API, providing streamlined access to trading, account management, and market data. It simplifies integration with Gemini’s REST API, handling authentication, requests, and responses for both public and private endpoints. ",
       package: [
         licenses: ["Apache-2.0"],
-        links: %{"GitHub" => "https://github.com/mpol1t/geminex"}
+        links: %{
+          "GitHub" => "https://github.com/mpol1t/geminex",
+          "Changelog" => "https://github.com/mpol1t/geminex/blob/main/CHANGELOG.md"
+        }
       ],
+      docs: docs(),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
@@ -49,6 +54,30 @@ defmodule Geminex.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:styler, "~> 1.11.0", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.18.3", only: [:test], runtime: false}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      source_ref: "v#{@version}",
+      source_url: "https://github.com/mpol1t/geminex",
+      canonical: "https://hexdocs.pm/geminex",
+      extras: [
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE",
+        "docs/guides/getting_started.md",
+        "docs/guides/configuration.md",
+        "docs/guides/public_api.md",
+        "docs/guides/private_api.md",
+        "docs/guides/authentication_and_nonce.md",
+        "docs/guides/error_handling.md"
+      ],
+      groups_for_extras: [
+        Project: ["README.md", "CHANGELOG.md", "LICENSE"],
+        Guides: ~r/docs\/guides\/.*/
+      ]
     ]
   end
 end
