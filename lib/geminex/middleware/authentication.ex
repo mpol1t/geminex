@@ -11,7 +11,7 @@ defmodule Geminex.Middleware.Authentication do
     api_key = Application.fetch_env!(:geminex, :api_key)
     api_secret = Application.fetch_env!(:geminex, :api_secret)
 
-    payload = build_payload(body, request_path, :os.system_time(:millisecond))
+    payload = build_payload(body, request_path, nonce())
 
     encoded_payload = Jason.encode!(payload) |> Base.encode64()
 
@@ -40,4 +40,6 @@ defmodule Geminex.Middleware.Authentication do
       "nonce" => nonce
     })
   end
+
+  defp nonce, do: System.os_time(:second)
 end

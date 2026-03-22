@@ -7,28 +7,18 @@
 
 # Geminex
 
-Geminex is an Elixir client for the [Gemini API](https://docs.gemini.com/), offering easy access to trading, account management, and market data. With both public and private endpoints, it supports order placement, balance checks, market data retrieval, and more, all while abstracting the complexities of API interaction.
+`geminex` is an Elixir REST client for Gemini public and private APIs.
 
-## Table of Contents
-- [Features](#features)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-    - [Public API](#public-api)
-    - [Private API](#private-api)
-- [Error Handling](#error-handling)
-- [Adapter Configuration](#adapter-configuration)
-- [Running Tests](#running-tests)
-- [Running Dialyzer](#running-dialyzer)
-- [Contributing](#contributing)
-- [License](#license)
+## Documentation
 
-## Features
+HexDocs includes API reference plus focused guides:
 
-- Access to **public API** endpoints for market data and trading symbols
-- **Private API** for order placement, trades, account management, staking, and more
-- Built-in **middleware** for authentication and environment switching
-- Simplified **error handling** for cleaner code integration
+- [Getting Started](docs/guides/getting_started.md)
+- [Configuration](docs/guides/configuration.md)
+- [Public API](docs/guides/public_api.md)
+- [Private API](docs/guides/private_api.md)
+- [Authentication and Nonce](docs/guides/authentication_and_nonce.md)
+- [Error Handling](docs/guides/error_handling.md)
 
 ## Installation
 
@@ -37,129 +27,52 @@ Add `geminex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:geminex, "~> 0.1.0"}
+    {:geminex, "~> 0.1.1"}
   ]
 end
 ```
 
-Then, run:
+Then fetch dependencies:
 
 ```bash
 mix deps.get
 ```
 
-## Configuration
-
-Configure `Geminex` in your application’s configuration file. Set the environment and provide your Gemini API credentials. You can choose between sandbox and production environments.
-
-**config/config.exs**:
+## Quickstart
 
 ```elixir
 import Config
 
 config :geminex,
-       environment: :sandbox,             # Options: :sandbox or :production
-       api_key:     System.get_env("GEMINI_API_KEY"),
-       api_secret:  System.get_env("GEMINI_API_SECRET")
+  environment: :sandbox,
+  api_key: System.get_env("GEMINI_API_KEY"),
+  api_secret: System.get_env("GEMINI_API_SECRET")
 ```
 
-Replace `<api_key>` and `<api_secret>` with your Gemini API credentials.
-## Usage
-
-Geminex offers both **public** and **private** APIs for interacting with Gemini's exchange.
-
-### Public API
-
-The public API allows access to trading symbols, order books, and market data. These endpoints do not require authentication.
-
 ```elixir
-# Retrieve all available trading symbols
 {:ok, symbols} = Geminex.API.Public.symbols()
-
-# Fetch ticker data for a specific symbol
-{:ok, ticker_data} = Geminex.API.Public.ticker("btcusd")
-```
-
-### Private API
-
-The private API enables management of orders, trades, account settings, staking, and more. These endpoints require valid API credentials and are restricted by Gemini’s account access policies.
-
-```elixir
-# Place a new order
-{:ok, order_response} = Geminex.API.Private.new_order("btcusd", "0.1", "50000", "buy", "exchange limit", client_order_id: "order_12345")
-
-# Retrieve account balance
 {:ok, balances} = Geminex.API.Private.available_balances()
 ```
 
-### Error Handling
+## Notes
 
-All functions return `{:ok, result}` on success and `{:error, reason}` on failure. You can use pattern matching to handle these responses effectively:
+- Private API requests are signed in `Geminex.Middleware.Authentication`.
+- Nonce generation uses second precision and is sourced from `System.os_time(:second)`.
+- Default Tesla adapter is Mint; you can override Tesla adapter configuration in your app.
 
-```elixir
-case Geminex.API.Public.symbols() do
-  {:ok, symbols} ->
-    IO.inspect(symbols)
-
-  {:error, reason} ->
-    IO.puts("Failed to retrieve symbols: #{inspect(reason)}")
-end
-```
-
-### Adapter Configuration
-
-By default, `Geminex` uses the `Mint` adapter with Tesla. However, users are free to choose and configure any adapter supported by Tesla.
-
-#### Default Configuration
-
-The default configuration uses the `Mint` adapter:
-
-```elixir
-import Config
-
-config :tesla, adapter: Tesla.Adapter.Mint
-```
-
-#### Customizing the Adapter
-
-To customize the `Mint` adapter settings or use a different adapter, override the Tesla configuration in your `config.exs` file:
-
-```elixir
-# Customizing Mint
-config :tesla,
-  adapter: {Tesla.Adapter.Mint, timeout: 10_000, recv_timeout: 15_000}
-
-# Using Hackney
-config :tesla,
-  adapter: {Tesla.Adapter.Hackney, pool_timeout: 5_000, recv_timeout: 10_000}
-```
-
-#### Notes
-
-- Custom settings apply globally and may affect other libraries using Tesla.
-- Refer to the [Tesla documentation](https://hexdocs.pm/tesla/readme.html#adapters) for a list of supported adapters and configuration options.
-
-### Running Tests
-
-To run tests:
+## Running Tests
 
 ```bash
 mix test
 ```
 
-### Running Dialyzer
-
-For static analysis with Dialyzer, make sure PLTs are built:
+## Running Dialyzer
 
 ```bash
 mix dialyzer --plt
 mix dialyzer
 ```
 
-## Contributing
-
-Feel free to open issues or submit PRs to enhance the functionality. Contributions are welcome!
-
 ## License
 
-This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
+Apache License 2.0. See [LICENSE](LICENSE).
